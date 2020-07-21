@@ -26,8 +26,9 @@ def main(argv):
 	print(f"Processing catalog: {cat_path}")
 	cat = mcalcat_process(cat_path, zbin_path, mask)
 
-	print(f"Processing ggmaps")
-	ggmap = ggmap_process(cat)
+	ggmap_pref = f"datay1/{basename(cat_path).split('.')[0]}_nside{nside}_ggmap_zbin"
+	print(f"Processing ggmaps: {ggmap_pref}")
+	ggmap = ggmap_process(ggmap_pref, cat)
 
 	print(f"Processing binning: {bin_path}")	
 	bpws, ells, weights = loadtxt(bin_path, unpack=True)
