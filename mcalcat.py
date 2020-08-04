@@ -11,7 +11,9 @@ mcalpath = 'mcalcat.fits.gz'
 
 def mcalcat_process(cat, zbin, mask, nside=4096):
 	if exists(mcalpath):
-		return mcalcat_read(mcalpath)
+		mcat =  mcalcat_read(mcalpath)
+		print([(c['g1'].mean(), c['g1'].std(), c['g1'].mean(), c['g2'].std()) for c in mcat])
+		return mcat
 	cat = mcalcat_load(cat)
 	cat = mcalcat_addip(cat, nside)	
 	cat = mcalcat_addzbin(cat, zbin)
@@ -21,6 +23,7 @@ def mcalcat_process(cat, zbin, mask, nside=4096):
 	with Pool(processes=len(cat)) as pool:
 		mcat = pool.map(mcal_addgg, cat)
 	mcalcat_write(mcat, mcalpath)
+	print([(c['g1'].mean(), c['g1'].std(), c['g1'].mean(), c['g2'].std()) for c in mcat])
 	return mcat
 
 
@@ -48,6 +51,7 @@ def mcal_addgg(d):
 	d['g1'] = aux.div(d['R'])
 	aux = d['e2'].sub(d['e2'].mean()) 
 	d['g2'] = aux.div(d['R'])
+	d['g2'] = d['g2'].mul(-1.0)
 	return d.drop(['e1', 'e2', 'R'], axis=1)
 
 
@@ -83,16 +87,18 @@ def mcalcat_prune(d, mask):
 
 def mcalcat_addip(d, nside):
 	hp = HealPix('ring', nside)
-	d[f'ip{nside}'] = hp.eq2pix(d.ra.values, d.dec.values)
+	d[f'ip{nside}'] = hp.eq2pix(d.ra.values, d.dec.values).astype('i8')
 	return d.drop(['ra', 'dec'], axis=1)
 
 
 def mcalcat_load(cat):
-	fields = ['coadd_objects_id', 'ra', 'dec', 'e1', 'e2', 'R11', 'R22']
+	fields = ['coadd_objects_id', 'ra', 'dec', 'e1', 'e2', 'R11', 'R22', 'flags_select']
 	fits = FITS(cat)
 	cat = fits[1].read(columns=fields)
 	fits.close()
 	cat = cat.byteswap().newbyteorder()
 	cat = DataFrame.from_records(cat).set_index('coadd_objects_id')
-	return cat
+	# Select usable objects
+	cat = cat[cat.flags_select == 0]
+	return cat.drop('flags_select', axis=1)
 

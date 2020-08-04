@@ -30,6 +30,9 @@ def main(argv):
 	print(f"Processing ggmaps: {ggmap_pref}")
 	ggmap = ggmap_process(ggmap_pref, cat)
 
+	print(f"Processing noise TODO")
+	print([(g[0].mean(), g[0].var(), g[1].mean(), g[1].std()) for g in ggmap])
+
 	print(f"Processing binning: {bin_path}")	
 	bpws, ells, weights = loadtxt(bin_path, unpack=True)
 	b = NmtBin(nside=nside, bpws=bpws, ells=ells, weights=weights)
@@ -46,25 +49,23 @@ def main(argv):
 	df = DataFrame(columns=cols)
 	i = 0
 	for zi, zj in combinations_with_replacement(range(len(ggmap)), 2):
-		df[(f'{zi}{zj}', 'EE')] = cl[i][0]
-		df[(f'{zi}{zj}', 'EB')] = cl[i][1]
-		df[(f'{zi}{zj}', 'BE')] = cl[i][2]
-		df[(f'{zi}{zj}', 'BB')] = cl[i][3]
+		df[(f'{zi+1}{zj+1}', 'EE')] = cl[i][0]
+		df[(f'{zi+1}{zj+1}', 'EB')] = cl[i][1]
+		df[(f'{zi+1}{zj+1}', 'BE')] = cl[i][2]
+		df[(f'{zi+1}{zj+1}', 'BB')] = cl[i][3]
 		i += 1
 	df.to_csv(f"datay1/coupledcls_{basename(mask_path).split('.')[0]}_{basename(bin_path).split('.')[0]}.csv.gz")
 	cl = [w.decouple_cell(c) for c in cl]
 	df = DataFrame(index=b.get_effective_ells(), columns=cols)
 	i = 0
 	for zi, zj in combinations_with_replacement(range(len(ggmap)), 2):
-		df[(f'{zi}{zj}', 'EE')] = cl[i][0]
-		df[(f'{zi}{zj}', 'EB')] = cl[i][1]
-		df[(f'{zi}{zj}', 'BE')] = cl[i][2]
-		df[(f'{zi}{zj}', 'BB')] = cl[i][3]
+		df[(f'{zi+1}{zj+1}', 'EE')] = cl[i][0]
+		df[(f'{zi+1}{zj+1}', 'EB')] = cl[i][1]
+		df[(f'{zi+1}{zj+1}', 'BE')] = cl[i][2]
+		df[(f'{zi+1}{zj+1}', 'BB')] = cl[i][3]
 		i += 1
 	df.to_csv(f"datay1/cls_{basename(mask_path).split('.')[0]}_{basename(bin_path).split('.')[0]}.csv.gz")
 
-	print(f"Processing noise TODO")
-	
 	return 0
 
 

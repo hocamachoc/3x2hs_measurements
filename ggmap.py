@@ -22,9 +22,9 @@ def ggmap_process_single(path, cat, nside):
 
 def ggmap_cat2ggmap(cat, nside):
 	npix = nside2npix(nside)
-	ncmap = bincount(cat[f'ip{nside}'].values, minlength=npix)
-	g1 = bincount(cat[f'ip{nside}'].values, weights=cat['g1'].values, minlength=npix)
-	g2 = bincount(cat[f'ip{nside}'].values, weights=cat['g2'].values, minlength=npix)
+	ncmap = bincount(cat[f'ip{nside}'].astype('i8'), minlength=npix)
+	g1 = bincount(cat[f'ip{nside}'].astype('i8'), weights=cat['g1'].values, minlength=npix)
+	g2 = bincount(cat[f'ip{nside}'].astype('i8'), weights=cat['g2'].values, minlength=npix)
 	m = (ncmap > 0)
 	g1[m] = g1[m] / ncmap[m]
 	g2[m] = g2[m] / ncmap[m]
