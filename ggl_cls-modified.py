@@ -127,3 +127,20 @@ cl_nmt = nmt.compute_full_master(fl0, fl2, b) #, workspace=w)
 #                         cl_fs, header="# (TT, EE, BB, TE, EB, TB)")
 #     print(f"Looping time {time.time() - t1:3.2f}s")
 # print(f'Execution time (cumulative) f2z{zj} f1z1-5): {time.time()-t0: 3.2}s' )
+
+
+
+##############################################################################
+############# UNCOMMENT THIS SECTION IF YOU WANT TO PLOT #####################
+
+#import matplotlib.pyplot as plt
+
+#plt.loglog(elllog, cl_nmt[0], label='TE', marker='o')
+#plt.loglog(elllog, cl_nmt[1], label='TB', marker='o')
+#plt.xscale('log')
+#plt.yscale('log')
+#plt.xlabel('$\\ell$', fontsize=16)
+#plt.ylabel('$C_\\ell$', fontsize=16)
+#plt.legend(loc='upper right', ncol=2, labelspacing=0.1)
+#plt.title('galaxy-galaxy lensing')
+#plt.show()
