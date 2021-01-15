@@ -24,7 +24,7 @@
 
 - The data $C_\ell$ are very weird; the E and B modes have the same order of magnitude.
 This problem occurs both in ggl cls and shear cls. 
-Plenty of tests were performed and the measuring pipeline works in other situations.
+Several tests were performed and the measuring pipeline works in other situations.
 Maybe the maps on google drive aren't the final version? 
 
 - I can't reproduce the maps on the drive running the catalog processing pipeline in Nersc
