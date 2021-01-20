@@ -13,7 +13,7 @@ def make_poscat(iseed, ick, nside, nz, flaskdir):
 def join_posmaskedcats(iseed, ick, nz, flaskdir):
     """ Returns joined posmaskedcats originaly separated by ZBIN
     """
-    fn = [f"{flaskdir}/lnscat_z{iz}_s{iseed}_ck{ick}.parquet"
+    fn = [f"{flaskdir}/lnscat_z{iz+1}_s{iseed}_ck{ick}.parquet"
           for iz in range(nz)]
     poscat = [read_parquet(f) for f in fn]
     for zi in range(nz):

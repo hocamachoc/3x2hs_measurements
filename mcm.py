@@ -1,12 +1,12 @@
 from pymaster import NmtWorkspace, NmtField
-from os.path import exists
+from os.path import exists, getsize
 
 
 def mcm_process(mcm_path, mask, b, purify_e, purify_b):
     """ Return MCM workspace for shear - shear
     """
     w = NmtWorkspace()
-    if exists(mcm_path):
+    if exists(mcm_path) and getsize(mcm_path) > 0:
         w.read_from(mcm_path)
         return w
     f2 = NmtField(mask, [mask, mask], purify_e=purify_e, purify_b=purify_b)
@@ -18,7 +18,7 @@ def mcm_process(mcm_path, mask, b, purify_e, purify_b):
 def make_pos(mask, ick, b, out_dir):
     """ Return MCM workspace for pos - pos
     """
-    path = f"{out_dir}/mcm_pos_ck{ick}_nside{npix2nside(len(mask))}.fits"
+    path = f"{out_dir}/mcm_gcl_ck{ick}.fits"
     w = NmtWorkspace()
     if exists(path) and getsize(path) > 0:
         w.read_from(path)
