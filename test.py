@@ -21,4 +21,4 @@ if not exists(odir):
   makedirs(odir)
 
 cls = cls_flask(iseed, ick, ell_ini, ell_end, nside, nz, flskdir, mskdir, odir)
-savez_compressed(f'{odir}/cls_gcl_s{iseed}_ck{ick}.npz', cls)
+savez_compressed(f'{odir}/cls_gcl_s{iseed}_ck{ick}.npz', **cls)
