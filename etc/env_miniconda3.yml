@@ -1,0 +1,12 @@
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - namaster=1.2.*
+  - healpy=1.14.*
+  - pandas
+  - pyarrow
+  - pip
+  - pip:
+    - -e git+https://github.com/esheldon/healpix_util.git#egg=healpix_util
