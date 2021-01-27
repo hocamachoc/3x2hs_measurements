@@ -1,7 +1,6 @@
 #!/bin/bash
 #SBATCH -N 1
 #SBATCH --mail-type ALL
-#SBATCH --mail-user hocamachoc@gmail.com
 
 export OMP_NUM_THREADS=$(lscpu| grep -e '^CPU(s):'| awk '{print $2}')
 
@@ -24,11 +23,10 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
-# HC: Not want to be on a conda env by default
-conda deactivate
-
+conda deactivate                # HC: Not want to be on a conda env by default
 conda activate 3x2pths
-which python; python --version
-python test.py ${SLURM_ARRAY_TASK_ID}
+
+# which python; python --version  # Just to check
+time python test.py ${SLURM_ARRAY_TASK_ID}
 
 conda deactivate
