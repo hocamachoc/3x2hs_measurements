@@ -1,3 +1,4 @@
+name: 3x2pths
 channels:
   - conda-forge
   - defaults
@@ -7,6 +8,7 @@ dependencies:
   - healpy=1.14.*
   - pandas
   - pyarrow
+  - pyyaml
   - pip
   - pip:
     - -e git+https://github.com/esheldon/healpix_util.git#egg=healpix_util
