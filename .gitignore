@@ -3,5 +3,6 @@ __pycache__/
 datay1
 datay1flsk
 etc/.*
+etc/src/
 log
 slurm-*.out
