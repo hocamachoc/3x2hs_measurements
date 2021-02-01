@@ -27,6 +27,6 @@ conda deactivate                # HC: Not want to be on a conda env by default
 conda activate 3x2pths
 
 # which python; python --version  # Just to check
-time python test.py ${SLURM_ARRAY_TASK_ID}
+time python test.py etc/y3flask_gcl.yml ${SLURM_ARRAY_TASK_ID}
 
 conda deactivate
