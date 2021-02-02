@@ -3,6 +3,4 @@ nside: 1024
 flskdir: "/store/hcamacho/des_flasky3/maskedcats"
 mskdir: "/store/hcamacho/des_flasky3/cookies"
 elledges: "etc/binLogN20Lmin30Lmax3000.txt"
-#elledges: "etc/binLinN20Lmin30Lmax3000.txt"
-#elledges: "etc/binSqrtN20Lmin30Lmax3000.txt"
 odir: "/store/hcamacho/des_flasky3/cls"
