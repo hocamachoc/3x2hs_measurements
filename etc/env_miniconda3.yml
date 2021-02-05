@@ -3,7 +3,8 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.8
+  # namaster
+  - python=3.8 # 3.9 is giving problems in miniconda/3
   - namaster=1.2.*
   - healpy=1.14.*
   - pandas
@@ -12,3 +13,19 @@ dependencies:
   - pip
   - pip:
     - -e git+https://github.com/esheldon/healpix_util.git#egg=healpix_util
+  # cosmosis
+  - openmpi
+  - openmp
+  - libgomp
+  - gcc_linux-64
+  - gxx_linux-64
+  - gfortran_linux-64
+  - fftw
+  - cfitsio
+  - gsl
+  - lapack
+  - blas
+  - pip: # https://bitbucket.org/joezuntz/cosmosis/src/2d29d33e64da2d4b0368e19cb9f9a5af559f0294/bin/cosmosis_main.py?at=master#lines-11
+    - configparser
+    - future
+
