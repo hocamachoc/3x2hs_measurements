@@ -4,7 +4,7 @@
 #See the wiki https://bitbucket.org/joezuntz/cosmosis/wiki/Manual%20Install
 #on how to change and use this file
 
-export COSMOSIS_SRC_DIR=${PWD}/etc/src/cosmosis
+export COSMOSIS_SRC_DIR=~/3x2hs_measurements/etc/src/cosmosis
 
 # Conda env activated?
 echo $CONDA_DEFAULT_ENV

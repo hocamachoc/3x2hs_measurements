@@ -28,8 +28,8 @@ git clone https://darkenergysurvey@bitbucket.org/joezuntz/cosmosis-des-library
 cd ../../../
 
 # 2) Setup the conda env
-# Note the strategy here is: if there's a `3x2pths` module already is to start
-# fresh, remove it and create a new.
+# Note the strategy here is: if there's a `3x2pths` module already, to start
+# fresh, remove it and create a new one.
 sed -i -e 's/^CosmoloPy/# CosmoloPy/' etc/src/cosmosis/config/requirements.txt
 sed -i -e 's/^sklearn/scikit-learn/' etc/src/cosmosis/config/requirements.txt
 conda remove --name 3x2pths --all -y
@@ -38,8 +38,8 @@ source activate 3x2pths
 conda install -f etc/src/cosmosis/config/requirements.txt
 
 # 3) Install cosmosis
-# We're skipping from now `polychord` as its having some compilation issues,
-# sorry!
+# TODO: `polychord` - We're skipping for now, as its having some compilation
+# issues, sorry!
 sed -i -e 's/^SUBDIRS/# SUBDIRS/' etc/src/cosmosis/cosmosis/samplers/polychord/Makefile
 source etc/setup_cosmosis
 cd etc/src/cosmosis
