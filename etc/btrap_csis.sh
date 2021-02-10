@@ -11,8 +11,11 @@ case ${1} in
     cori)
 	module load python
 	;;
+    sd)
+	module load anaconda3
+	;;
     *)
-	echo "Usage: ${0} <grid||cori>"
+	echo "Usage: ${0} <grid||cori|sd>"
 	exit 1
 	;;
 esac
