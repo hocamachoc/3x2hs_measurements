@@ -1,9 +1,8 @@
 #!/bin/bash
 
 # 0) Load the conda module
-# Currently supporting
-# - GRID/UNESP: miniconda/3
-# - NERSC/CORI: python (anaconda3)
+# Currently supporting: GRID/UNESP: miniconda/3, CORI/NERSC: python (anaconda3) 
+# & SD anaconda3.
 case ${1} in
     grid)
 	module load miniconda/3
@@ -15,13 +14,13 @@ case ${1} in
 	module load anaconda3
 	;;
     *)
-	echo "Usage: ${0} <grid||cori|sd>"
+	echo "Usage: ${0} <grid|cori|sd>"
 	exit 1
 	;;
 esac
 
-# 1) Clone CosmoSIS repos
-# You will need to pass de DES password for the cosmosis-des-library
+# 1) Clone the CosmoSIS repos
+# You will need to pass the DES password for the cosmosis-des-library
 mkdir -p etc/src
 cd etc/src
 git clone http://bitbucket.org/joezuntz/cosmosis
@@ -49,5 +48,4 @@ cd etc/src/cosmosis
 make
 
 # 4) Clean up
-# Just deactivate the conda env
 conda deactivate
