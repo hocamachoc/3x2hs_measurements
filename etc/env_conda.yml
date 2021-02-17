@@ -9,6 +9,7 @@ dependencies:
   - healpy=1.14.*
   - pandas
   - pyarrow
+  - fitsio
   - pyyaml
   - pip
   - pip:
