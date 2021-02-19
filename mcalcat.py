@@ -2,23 +2,22 @@ from fitsio import FITS
 from pandas import DataFrame, concat
 from healpix_util import HealPix
 from healpy import npix2nside
-from numpy import argwhere, isin
+from numpy import argwhere, isin, ones
 from multiprocessing import Pool
 from os.path import exists
 
 mcalpath = 'mcalcat.fits.gz'
 
 
-def mcalcat_process(cat, zbin, mask, nside=4096):
+# def mcalcat_process(cat, zbin, mask, nside=4096):
+def mcalcat_process(cat, zbin, nside):
     if exists(mcalpath):
         mcat = mcalcat_read(mcalpath)
-        print([(c['g1'].mean(), c['g1'].std(), c['g1'].mean(), c['g2'].std())
-               for c in mcat])
         return mcat
     cat = mcalcat_load(cat)
     cat = mcalcat_addip(cat, nside)
     cat = mcalcat_addzbin(cat, zbin)
-    cat = mcalcat_prune(cat, mask)
+    # cat = mcalcat_prune(cat, mask)
     cat = mcalcat_addR(cat)
     cat = mcalcat_splitzbins(cat)
     with Pool(processes=len(cat)) as pool:
@@ -50,12 +49,10 @@ def mcalcat_write(cat, path):
 
 
 def mcal_addgg(d):
-    aux = d['e1'].sub(d['e1'].mean())
-    d['g1'] = aux.div(d['R'])
-    aux = d['e2'].sub(d['e2'].mean())
-    d['g2'] = aux.div(d['R'])
-    d['g2'] = d['g2'].mul(-1.0)
-    return d.drop(['e1', 'e2', 'R'], axis=1)
+    d['g1'] = d['e1'].sub(d['e1'].mean())
+    d['g2'] = d['e2'].sub(d['e2'].mean())
+    d['varg'] = 0.5 * (d['e1']**2 + d['e2']**2)
+    return d.drop(['e1', 'e2'], axis=1)
 
 
 def mcalcat_splitzbins(d):
@@ -71,7 +68,7 @@ def mcalcat_addzbin(d, zbin):
     zbin = DataFrame.from_records(zbin).set_index('coadd_objects_id')
     zbin = zbin.rename(columns={"zbin_mcal": "zbin"})
     cat = concat([d, zbin], axis=1)
-    return cat[cat['zbin'] > -1]
+    return cat[cat['zbin'] > -1].dropna()
 
 
 def mcalcat_addR(d):
@@ -80,11 +77,11 @@ def mcalcat_addR(d):
     return d.drop(['R11', 'R22'], axis=1)
 
 
-def mcalcat_prune(d, mask):
-    nside = npix2nside(len(mask))
-    ipgood = argwhere(mask > 0).flatten()
-    m = isin(d[f'ip{nside}'].values, ipgood)
-    return d[m]
+# def mcalcat_prune(d, mask):
+#     nside = npix2nside(len(mask))
+#     ipgood = argwhere(mask > 0).flatten()
+#     m = isin(d[f'ip{nside}'].values, ipgood)
+#     return d[m]
 
 
 def mcalcat_addip(d, nside):
@@ -103,4 +100,6 @@ def mcalcat_load(cat):
     cat = DataFrame.from_records(cat).set_index('coadd_objects_id')
     # Select usable objects
     cat = cat[cat.flags_select == 0]
-    return cat.drop('flags_select', axis=1)
+    # Weights
+    cat['w'] = ones(cat.shape[0])
+    return cat.drop(['flags_select'], axis=1)
