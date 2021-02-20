@@ -7,12 +7,13 @@ import healpix_util as hu
 import pymaster as nmt
 
 
-def cat_fromflsk(cshcat_fn, nside, truth=False):
+def cat_fromflsk(cshcat_fn, nside, nonoise=False):
     """Load FLASK cosmic shear catalog and adds additional info
     """
     cshcat = pd.read_parquet(cshcat_fn)
+
     # Shear
-    if truth:
+    if nonoise:
         cshcat['g1'] = cshcat['g1_true']
         cshcat['g2'] = cshcat['g2_true']
     cshcat.drop(['g1_true', 'g2_true'], axis=1, inplace=True)

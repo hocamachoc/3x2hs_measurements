@@ -17,17 +17,19 @@ with open(conf, 'rt') as f:
     conf = yaml.safe_load(f)
 odir = f"{conf['odir']}/nside{conf['nside']}"\
        f"_{os.path.basename(conf['elledges']).replace('.txt', '')}"
+if conf['nonoise']:
+    odir += '_nonoise'
 print(conf, odir)
 
 if conf['type'] == 'flask':
     real_id = int(sys.argv[2])   # Realization ID. Starts at 0
     iseed, ick = real_id // 2 + 1, real_id % 2 + 1
     print(iseed, ick)
-    cshcat_fn = [f"{conf['flaskdir']}/srccat_z{iz+1}_s{iseed}_ck{ick}.parquet"
-                 for iz in range(conf['nz'])]
-    cshcat = [csh.cat_make_from_flaskcshcat(pd.read_parquet(fn[i]),
-                                             conf['nside'])
-              for fn in cshcat_fn]
+    cshcat = [f"{conf['flaskdir']}/srccat_z{iz+1}_s{iseed}_ck{ick}.parquet"
+              for iz in range(conf['nz'])]
+    cshcat = [csh.cat_fromflsk(fn, conf['nside'], conf['nonoise'])
+              for fn in cshcat]
+    print(cshcat)
     ofn = f'{odir}/cls_csh_s{iseed}_ck{ick}.npz'
 elif conf['type'] == 'y1metacal':
     cshcat = mcalcat.mcalcat_process(conf['mcalcat'], conf['zbin'],
@@ -55,8 +57,9 @@ for i in range(conf['nz']):
         if i == j:
             cls[f'nl_{i}'] = w.decouple_cell(csh.pclnoise_make(cshcat_i,
                                                                cshmask_i))
-
+            
 if not os.path.exists(odir):
     os.makedirs(odir)
 
+print("Writing", ofn)
 np.savez_compressed(ofn, **cls)

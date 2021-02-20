@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 import healpy as hp
 import fitsio as ft
-import time as tm
 import random as rd
 import healpix_util as hu
 import itertools as it
@@ -16,40 +15,47 @@ import sys
 
 def cshcat_make(map_fn, nbar, sigma_e, fgoodmap_fn, fgood_thold=0.0,
                 seed=None):
-    """Generates a cosmic-shear catalog for FLASK simulation realization.
+    """Generates a cosmic-shear catalog for a FLASK simulation realization.
     """
-    cshcat = pd.DataFrame(columns=['RA', 'DEC', 'GAMMA1', 'GAMMA2',
-                                   'GAMMA1_TRUTH', 'GAMMA2_TRUTH'])
+    cshcat = pd.DataFrame(columns=['ra', 'dec', 'g1', 'g2',
+                                   'g1_true', 'g2_true'])
 
     gamma1, gamma2, ip_good, nside_map, fgoodmap = ggmap_load(
         map_fn, fgoodmap_fn, fgood_thold=fgood_thold)
-    cshcat['RA'], cshcat['DEC'], nc_map = ggmap_sample_positions(
+    cshcat['ra'], cshcat['dec'], nc_map = ggmap_sample_positions(
         ip_good, nside_map, nbar, fgoodmap, seed=seed)
-    (cshcat['GAMMA1_TRUTH'], cshcat['GAMMA2_TRUTH'],
-     cshcat['GAMMA1'], cshcat['GAMMA2']) = cshcat_samplegamma(
-        sigma_e, gamma1, gamma2, nc_map, ip_good, nside_map, seed=seed)
+    dg1, dg2 = cshcat_samplegamma(sigma_e, nc_map.sum(), seed=seed)
+
+    idx = [[i] * nc_map[i] for i in range(len(ip_good))]
+    idx = [ip for sub in idx for ip in sub]
+
+    cshcat['g1_true'], cshcat['g2_true'] = -gamma1[idx], gamma2[idx]
+    cshcat['g1'] = -gamma1[idx] + dg1
+    cshcat['g2'] = gamma2[idx] + dg2
 
     return cshcat
 
 
 def ggmap_load(map_fn, fgoodmap_fn, fgood_thold=0.0):
-    """Loads a shear map from a weak-lensing FLASK map (kggmap) and reduce it
-    to a footprint specified by a fracgood map.
-    Note the resolution of output ggmap is the same of the input kggmap.
+    """Loads a shear map from a weak-lensing FLASK simulated map (kggmap) and
+    reduce it to a footprint specified by a fracgood map. Note we're keeping
+    the resolution, i.e., the resolution of the output ggmap is the same of the
+    input kggmap.
+
     """
-    print("> Load data")
-    sec = tm.time()
     nside_map = ft.read_header(map_fn, 1)['nside']
     nside_msk = ft.read_header(fgoodmap_fn, 1)['nside']
+    assert nside_map >= nside_msk 
+
+    print("Reading", map_fn)
     fgoodmap = hp.read_map(fgoodmap_fn, verbose=False)
     ip_good, = np.where(fgoodmap > fgood_thold)
     gamma1, gamma2 = hp.read_map(map_fn, field=[1, 2], verbose=False)
-    assert nside_map >= nside_msk
-    if nside_msk != nside_map:
+    if nside_msk > nside_map:  # 'Down-grade' the ip_good accordingly
         ang_mid = hp.pix2ang(nside_map, np.arange(hp.nside2npix(nside_map)))
         mask_tmp = np.in1d(hp.ang2pix(nside_msk, *ang_mid), ip_good)
         ip_good = np.arange(hp.nside2npix(nside_map))[mask_tmp]
-    print(tm.time() - sec)
+
     return (gamma1[ip_good], gamma2[ip_good], ip_good, nside_map,
             fgoodmap[ip_good])
 
@@ -62,94 +68,25 @@ def ggmap_sample_positions(ip_good, nside, nbar, fgoodmap, seed=None,
     nbar_pix = nbar * hp.nside2pixarea(nside, degrees=True) * 3600.0
     nc_map = np.random.poisson(nbar_pix, len(ip_good))
     
-    print("Sample Positions")
-    print("nbar (_pix) =", nbar, nbar_pix, nc_map.mean())
-    print("Nsrc =", nc_map.sum())
-    print("Aeff =", fgoodmap.shape[0] *
-          hp.nside2pixarea(nside, degrees=True))
-    print("  neff =", nc_map.sum() / fgoodmap.shape[0] /
-          hp.nside2pixarea(nside, degrees=True) / 3600.0)
-    print("  Aeff =", fgoodmap.sum() * hp.nside2pixarea(nside, degrees=True))
-    print("  neff =", nc_map.sum() / fgoodmap.sum() /
-          hp.nside2pixarea(nside, degrees=True) / 3600.0)
-
-    ip = [[ip_good[i]] * nc_map[i] for i in range(len(ip_good))]
-    ip = [i for sub in ip for i in sub]
-    return *hu.HealPix('ring', nside).pix2eq(ip), nc_map
-
-    # s = tm.time()
-    # ip_good_nest = hp.ring2nest(nside, ip_good)
-    # print(tm.time() - s)
-    # s = tm.time()
-    # ipix_nest = [rd.sample(range(ip_good_nest[i] * 4**nside_up,
-    #                              (ip_good_nest[i] + 1) * 4**nside_up),
-    #                        nc_map[i])
-    #              for i in range(len(ip_good))]
-    # ipix_nest = [ip for sub in ipix_nest for ip in sub]
-    # print(tm.time() - s)
-
-    # hpix = hu.HealPix('nest', nside * 2**nside_up)
-    # return *hpix.pix2eq(ipix_nest), nc_map
-
-
-def ggmap_sample_positions_mp(ip_good, nside, nbar, fgoodmap, seed=None,
-                              nside_up=4):
-    """Samples the positions of galaxies
-    """
-    np.random.seed(seed)
-    nbar_pix = nbar * hp.nside2pixarea(nside, degrees=True) * 3600.0
-    nc_map = np.random.poisson(nbar_pix, len(ip_good))
-    
-    print("> Sample Positions")
-    print("  nbar (_pix) =", nbar, nbar_pix, nc_map.mean())
-    print("  Nsrc =", nc_map.sum())
-    print("  Aeff =", fgoodmap.shape[0] *
-          hp.nside2pixarea(nside, degrees=True))
-    print("  neff =", nc_map.sum() / fgoodmap.shape[0] /
-          hp.nside2pixarea(nside, degrees=True) / 3600.0)
-    print("  Aeff =", fgoodmap.sum() * hp.nside2pixarea(nside, degrees=True))
-    print("  neff =", nc_map.sum() / fgoodmap.sum() /
-          hp.nside2pixarea(nside, degrees=True) / 3600.0)
-
-    s = tm.time()
     ip_good_nest = hp.ring2nest(nside, ip_good)
-    print(tm.time() - s)
-    s = tm.time()
-    # ipix_nest = [rd.sample(range(ip_good_nest[i] * 4**nside_up,
-    #                              (ip_good_nest[i] + 1) * 4**nside_up),
-    #                        nc_map[i])
-    #              for i in range(len(ip_good))]
-    with mp.Pool() as pool:
-        ipix_nest = pool.starmap(rd.sample,
-                                 [(range(ip_good_nest[i] * 4**nside_up,
-                                         (ip_good_nest[i] + 1) * 4**nside_up),
-                                   nc_map[i])
-                                  for i in range(len(ip_good))])
+    ipix_nest = [rd.sample(range(ip_good_nest[i] * 4**nside_up,
+                                 (ip_good_nest[i] + 1) * 4**nside_up),
+                           nc_map[i])
+                 for i in range(len(ip_good))]
     ipix_nest = [ip for sub in ipix_nest for ip in sub]
-    print(tm.time() - s)
 
     hpix = hu.HealPix('nest', nside * 2**nside_up)
     return *hpix.pix2eq(ipix_nest), nc_map
 
 
-def cshcat_samplegamma(sigma_e, gamma1, gamma2, nc_map, ip_good, nside,
-                       seed=None):
+def cshcat_samplegamma(sigma_e, ngal, seed=None):
     """Sample shear dispersion
     """
-    # Constructs a list with pixel idxs at map resolution for the
-    # source galaxies. Note the idxs on gamma{1,2} and ip_good are not over all
-    # map indexes, but on the masked region.
-    # ipix = [[ip_good[i]] * nc_map[i] for i in range(len(ip_good))]
-    ipix = [[i] * nc_map[i] for i in range(len(ip_good))]
-    ipix = [ip for sub in ipix for ip in sub]
-    ngal = nc_map.sum()
-
     np.random.seed(seed)
     dgamma1 = sigma_e * np.random.randn(ngal)
     dgamma2 = sigma_e * np.random.randn(ngal)
 
-    return (gamma1[ipix], gamma2[ipix],
-            gamma1[ipix] + dgamma1, gamma2[ipix] + dgamma2)
+    return dgamma1, dgamma2
 
 
 def process_one_kggmap(iseed, ick, iz, flaskdir, outdir, nbar, sigma_e):
@@ -163,7 +100,8 @@ def process_one_kggmap(iseed, ick, iz, flaskdir, outdir, nbar, sigma_e):
     cshcat.to_parquet(cat_fn, index=False)
 
     return cat_fn
-        
+
+
 if __name__ == "__main__":
     sys.stdout.flush()
     
