@@ -88,3 +88,17 @@ def pclnoise_make(cshcat, cshmask):
     pcl_noise = np.full(3 * nside, pix_area * w2varg_pixmean / Rbias_mean**2)
     return np.array([pcl_noise, np.zeros(pcl_noise.shape[0]),
                      np.zeros(pcl_noise.shape[0]), pcl_noise])
+
+
+def gcov_make(fa1, fa2, fb1, fb2, wa, wb, cla1b1, cla1b2, cla2b1, cla2b2,
+              n_ell):
+    """Returns the Gaussian covariance matrix fa1fa2_fb1fb2
+    """
+    cw = nmt.NmtCovarianceWorkspace()
+    cw.compute_coupling_coefficients(fa1, fb1, fa2, fb2)
+    cov = nmt.gaussian_covariance(cw, 2, 2, 2, 2,  # Spins of the 4 fields
+                                  # EE, EB, BE, BB
+                                  cla1b1, cla1b2, cla2b1, cla2b2,
+                                  wa, wb=wb).reshape([n_ell, 4, n_ell, 4])
+    return cov
+    

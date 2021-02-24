@@ -102,6 +102,21 @@ def process_one_kggmap(iseed, ick, iz, flaskdir, outdir, nbar, sigma_e):
     return cat_fn
 
 
+def load_inputcl(i, j, neff, sigma_e, lmax):
+    """Load input Cls
+    """
+    idir = "/global/cscratch1/sd/faoli/flask_desy3/Cl_flaskv2p0_nolimber_emu_Nsource4"
+    fn = f'{idir}/Y3_5x2pt_Nsource4-Cl_f10z{i+1}f10z{j+1}.dat'
+    # l starts at 1
+    cl = np.loadtxt(fn, usecols=1)
+    cl = np.insert(cl, 1, 0)[:lmax]
+    nl = np.zeros_like(cl)
+    if i == j:
+        neff = neff * (180.0 * 60.0 / np.pi)**2  # 1/arcmin^2 -> 1/srad
+        nl = np.full_like(cl, sigma_e**2 / neff)
+    return [cl + nl] + [np.zeros_like(cl)] * 3
+
+
 if __name__ == "__main__":
     sys.stdout.flush()
     
