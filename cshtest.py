@@ -49,8 +49,7 @@ for i in range(conf['nz']):
     for j in range(i, conf['nz']):
         cshcat_j = cshcat[j]
         cshmask_j = csh.mask_make(cshcat_j, conf['nside'])
-        field_j = csh.field_make(cshcat_j, cshmask_j,
-                                 save_maps=conf['save_maps'])
+        field_j = csh.field_make(cshcat_j, cshmask_j)
         w = csh.mcm_make(field_i, field_j, bins)
         cls[f'bpwrwin_{i}{j}'] = w.get_bandpower_windows()
         cls[f'cl_{i}{j}'] = w.decouple_cell(
