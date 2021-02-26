@@ -5,3 +5,4 @@ mcalcat: "/global/cscratch1/sd/hcamacho/y1data/mcal-y1a1-combined-riz-unblind-v4
 zbin: "/global/cscratch1/sd/hcamacho/y1data/y1_source_redshift_binning_v1.fits"
 elledges: "etc/binLogN20Lmin30Lmax3000.txt"
 odir: "/global/cscratch1/sd/hcamacho/y1data_cls"
+save_maps: True
