@@ -51,23 +51,14 @@ cls = {'ell_eff': bins.get_effective_ells()}
 print('starting zbin loops')
 
 for i in range(conf['nz_lens']):
-    wc = hp.read_map(f"{conf['redmagic']}/wcountsmap_zbin{i}.fits")
-    nc = hp.read_map(f"{conf['redmagic']}/countsmap_zbin{i}.fits")
-    w = np.zeros_like(nc)
-    nbar = np.zeros(len(nc))
-    for aux in range(len(w)):
-        if wc[aux] or nc[aux] != 0:
-            w[aux] = wc[aux]/nc[aux]
-    nbar = sum(wc)/sum(w)
-    print(f'nbar from redmagic is {nbar}')
-    del(nc)
-
-    dmap = np.zeros_like(w)
-    dmap[w>0] = wc[w>0]/(nbar*w[w>0]) - 1
-    del(wc)
-    del(w)
-	
+    wc = hp.read_map(f"{conf['redmagic']}/wcountsmap_zbin{i}.fits")	
     dmask = hp.read_map(f"{conf['redmagic']}/maskmap.fits")
+    
+    nbar = sum(wc[dmask>0])/sum(dmask[dmask>0])
+    print(nbar)
+
+    dmap = np.full(len(dmask), 0.0)
+    dmap[dmask>0] = wc[dmask>0]/(nbar*dmask[dmask>0]) - 1
 	
     field_i = nmt.NmtField(dmask, [dmap],  purify_e=False, purify_b=False)
     for j in range(conf['nz_source']):
