@@ -31,7 +31,7 @@ def cshcat_make(map_fn, nbar, sigma_e, fgoodmap_fn, fgood_thold=0.0,
 
     cshcat['g1_true'], cshcat['g2_true'] = -gamma1[idx], gamma2[idx]
     cshcat['g1'] = -gamma1[idx] + dg1
-    cshcat['g2'] = gamma2[idx] + dg2
+    cshcat['g2'] = gamma2[idx] + dg2        
 
     return cshcat
 
@@ -83,8 +83,8 @@ def cshcat_samplegamma(sigma_e, ngal, seed=None):
     """Sample shear dispersion
     """
     np.random.seed(seed)
-    dgamma1 = sigma_e * np.random.randn(ngal)
-    dgamma2 = sigma_e * np.random.randn(ngal)
+    dgamma1 = sigma_e / np.sqrt(2.0) * np.random.randn(ngal)
+    dgamma2 = sigma_e / np.sqrt(2.0) * np.random.randn(ngal)
 
     return dgamma1, dgamma2
 
@@ -102,19 +102,59 @@ def process_one_kggmap(iseed, ick, iz, flaskdir, outdir, nbar, sigma_e):
     return cat_fn
 
 
-def load_inputcl(i, j, neff, sigma_e, lmax):
+def lnscat_load(iseed, flaskdir):
+    """Load FLASK lens-catalog to a pandas data-frame
+    """
+    lnscat_fn = f"{flaskdir}/4096/seed{iseed+1}/lens-catalog.fits.gz"
+    lnscat = ft.read(lnscat_fn, columns=['RA', 'DEC', 'galtype'])
+    # lnscat = lnscat.byteswap().newbyteorder()
+    lnscat = pd.DataFrame.from_records(lnscat)
+    names = {'galtype': 'zbin', 'RA': 'ra', 'DEC': 'dec'}
+    return lnscat.rename(columns=names)
+
+
+def lnscat_addck(lnscat, flaskdir, nck=2, nz_lns=5, fgood_thold=0.0):
+    """Add cookie-cut information to lnscat
+    """
+    fgoodmap_fn = [f"{flaskdir}/cookies/ck{ick+1}_desy3_goldv2p2p1.fits.gz"
+                   for ick in range(nck)]
+    nside = ft.read_header(fgoodmap_fn[0], 1)['nside']
+    assert nside == ft.read_header(fgoodmap_fn[1], 1)['nside']
+    npix = hp.nside2npix(nside)
+    
+    ipix = hu.HealPix('ring', nside).eq2pix(lnscat.ra, lnscat.dec)
+    ck = np.zeros(lnscat.shape[0], dtype='i4')
+    for ick in range(nck):
+        fgmap = hp.read_map(fgoodmap_fn[ick], verbose=False)
+        ip_good = np.arange(npix)[(fgmap > fgood_thold)]
+        ck[np.in1d(ipix, ip_good)] = ick + 1
+    lnscat['ck'] = ck
+    lnscat = lnscat[lnscat.ck > 0]
+        
+    return lnscat
+
+def process_lenscat(iseed, flaskdir, outdir, nz_lns=5, nck=2):
+    """Process a single seed FLASK lens-catalog
+    """
+    lnscat = lnscat_load(iseed, flaskdir)
+    lnscat = lnscat_addck(lnscat, flaskdir)
+
+    for iz, ick in it.product(range(nz_lns), range(nck)):
+        cat_fn = f"{outdir}/lnscat_z{iz+1}_s{iseed+1}_ck{ick+1}.parquet"
+        lnscat[(lnscat.zbin == iz + 1) & (lnscat.ck == ick + 1)].\
+            drop(columns=['zbin', 'ck']).\
+            to_parquet(cat_fn, index=False)
+    return
+
+def load_inputcl(i, j, lmax):
     """Load input Cls
     """
     idir = "/global/cscratch1/sd/faoli/flask_desy3/Cl_flaskv2p0_nolimber_emu_Nsource4"
     fn = f'{idir}/Y3_5x2pt_Nsource4-Cl_f10z{i+1}f10z{j+1}.dat'
-    # l starts at 1
+    # TODO: Check this, normally, l starts at 1 on FLASK/CLike predictions.
     cl = np.loadtxt(fn, usecols=1)
     cl = np.insert(cl, 1, 0)[:lmax]
-    nl = np.zeros_like(cl)
-    if i == j:
-        neff = neff * (180.0 * 60.0 / np.pi)**2  # 1/arcmin^2 -> 1/srad
-        nl = np.full_like(cl, sigma_e**2 / neff)
-    return [cl + nl] + [np.zeros_like(cl)] * 3
+    return np.array([cl] + [np.zeros_like(cl)] * 3)
 
 
 if __name__ == "__main__":
@@ -127,7 +167,7 @@ if __name__ == "__main__":
                         default="/global/cscratch1/sd/faoli/flask_desy3",
                         help="FLASK root directory.")
     parser.add_argument("--outdir",
-                        default="/global/cscratch1/sd/hcamacho/flask_desy3/maskedcats",
+                        default="/global/cscratch1/sd/faoli/flask_desy3/maskedcats",
                         help="Output directory.")
     o = parser.parse_args()
 
@@ -144,4 +184,5 @@ if __name__ == "__main__":
     print(args)
     with mp.Pool(processes=len(args)) as pool:
         cat_fn = pool.starmap(process_one_kggmap, args)
-            
+
+    process_lenscat(o.iseed, o.flaskdir, o.outdir)

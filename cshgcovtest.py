@@ -42,7 +42,9 @@ bins = nmt.NmtBin.from_edges(*np.loadtxt(conf['elledges'], unpack=True,
                                          dtype='i4'))
 
 print("Constructing fields")
-field = [csh.field_make(cshcat[i], csh.mask_make(cshcat[i], conf['nside']))
+cshmask = [csh.mask_make(cshcat[i], conf['nside'])
+           for i in  range(conf['nz'])]
+field = [csh.field_make(cshcat[i], cshmask[i])
          for i in range(conf['nz'])]
 
 pairs = [(i, j)
@@ -52,13 +54,19 @@ print("Preparing PCL workspaces")
 w = [csh.mcm_make(field[i], field[j], bins) for i, j in pairs]
 
 print("Loading input Cls")
-lmax = 3 * conf['nside'] + 1
+lmax = 3 * conf['nside']
 cl_in = [[None for i in range(conf['nz'])] for j in range(conf['nz'])]
-for i, j in pairs:
-    cl_in[i][j] = flask.load_inputcl(i, j, conf['neff'][i],
-                                     conf['sigma_e'][j], lmax)
+for ii, (i, j) in enumerate(pairs):
+    cl = flask.load_inputcl(i, j, lmax)
+    print(cl.shape, w[ii].wsp.lmax+1, type(w[ii].wsp.lmax+1), ii, type(ii))
+    cl[:, :w[ii].wsp.lmax+1] = w[ii].couple_cell(cl)
+    cl[:, w[ii].wsp.lmax:] = cl[:, w[ii].wsp.lmax][:, None]
+    if i == j:
+        cl += csh.pclnoise_make(cshcat[i], cshmask[i])
+    cl /= np.mean(cshmask[i] * cshmask[j])
+    cl_in[i][j] = cl
     if i != j:
-        cl_in[j][i] = cl_in[i][j]
+        cl_in[j][i] = cl
 print(len(cl_in), len(cl_in[0]), len(cl_in[0][0]), cl_in[0][0][0].shape)
 
 print("Building GCOV")
