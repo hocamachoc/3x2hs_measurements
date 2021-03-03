@@ -44,7 +44,9 @@ cls = {'ell_eff': bins.get_effective_ells()}
 for i in range(conf['nz']):
     cshcat_i = cshcat[i]
     cshmask_i = csh.mask_make(cshcat_i, conf['nside'])
-    field_i = csh.field_make(cshcat_i, cshmask_i)
+    field_i = csh.field_make(cshcat_i, cshmask_i,
+                             save_maps=conf['save_maps'],
+                             maps_prefix=f'{odir}/zbin{i}')
     for j in range(i, conf['nz']):
         cshcat_j = cshcat[j]
         cshmask_j = csh.mask_make(cshcat_j, conf['nside'])

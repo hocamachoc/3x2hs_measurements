@@ -45,7 +45,8 @@ def mask_make(cshcat, nside):
     return wgtmap
 
 
-def field_make(cshcat, cshmask, purify_e=False, purify_b=False):
+def field_make(cshcat, cshmask, purify_e=False, purify_b=False,
+               save_maps=False, maps_prefix=''):
     """Generates NaMASTER cosmic-shear field
     """
     npix = cshmask.shape[0]
@@ -55,6 +56,9 @@ def field_make(cshcat, cshmask, purify_e=False, purify_b=False):
                          weights=cshcat['w'] * cshcat['g1'])
     wg2map = np.bincount(cshcat[f'ip{nside}'], minlength=npix,
                          weights=cshcat['w'] * cshcat['g2'])
+    if save_maps:
+        hp.write_map(f'{maps_prefix}_we1map.fits', wg1map, overwrite=True)
+        hp.write_map(f'{maps_prefix}_we2map.fits', wg2map, overwrite=True)
 
     Rbias_mean = ((cshcat['R'] * cshcat['w']).sum() / cshcat['w'].sum())
 
