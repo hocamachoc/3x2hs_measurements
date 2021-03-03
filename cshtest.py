@@ -29,7 +29,6 @@ if conf['type'] == 'flask':
               for iz in range(conf['nz'])]
     cshcat = [csh.cat_fromflsk(fn, conf['nside'], conf['nonoise'])
               for fn in cshcat]
-    print(cshcat)
     ofn = f'{odir}/cls_csh_s{iseed}_ck{ick}.npz'
 elif conf['type'] == 'y1metacal':
     cshcat = mcalcat.mcalcat_process(conf['mcalcat'], conf['zbin'],
