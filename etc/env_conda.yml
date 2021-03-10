@@ -32,6 +32,5 @@ dependencies:
     # https://bitbucket.org/joezuntz/cosmosis/src/2d29d33e64da2d4b0368e19cb9f9a5af559f0294/bin/cosmosis_main.py?at=master#lines-11
     - configparser
     - future
-  # for jupyter
   - ipykernel
 
