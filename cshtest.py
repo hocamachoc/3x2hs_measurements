@@ -4,6 +4,7 @@ import yaml
 import itertools as it
 import multiprocessing as mp
 import numpy as np
+import healpy as hp
 import pandas as pd
 import pymaster as nmt
 import flask
@@ -32,7 +33,7 @@ if conf['type'] == 'flask':
     ofn = f'{odir}/cls_csh_s{iseed}_ck{ick}.npz'
 elif conf['type'] == 'y1metacal':
     cshcat = mcalcat.mcalcat_process(conf['mcalcat'], conf['zbin'],
-                                     conf['nside'])
+                                     conf['nside'], conf['fgoodmap'])
     ofn = f'{odir}/cls_csh_mcal.npz'
 else:
     raise ValueError(f"Computation type {conf['type']} not implemented")
@@ -53,11 +54,15 @@ for i in range(conf['nz']):
         field_j = csh.field_make(cshcat_j, cshmask_j)
         w = csh.mcm_make(field_i, field_j, bins)
         cls[f'bpwrwin_{i}{j}'] = w.get_bandpower_windows()
-        cls[f'cl_{i}{j}'] = w.decouple_cell(
-            nmt.compute_coupled_cell(field_i, field_j))
+        cls_coup = nmt.compute_coupled_cell(field_i, field_j)
+        if conf['pixwin']:
+            cls_coup /= np.array([hp.pixwin(conf['nside'])] * 4)**2
+        cls[f'cl_{i}{j}'] = w.decouple_cell(cls_coup)
         if i == j:
-            cls[f'nl_{i}'] = w.decouple_cell(csh.pclnoise_make(cshcat_i,
-                                                               cshmask_i))
+            nls_coup = csh.pclnoise_make(cshcat_i, cshmask_i)
+            if conf['pixwin']:
+                nls_coup /= np.array([hp.pixwin(conf['nside'])] * 4)**2
+            cls[f'nl_{i}'] = w.decouple_cell(nls_coup)
             
 if not os.path.exists(odir):
     os.makedirs(odir)

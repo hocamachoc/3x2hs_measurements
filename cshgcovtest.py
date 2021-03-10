@@ -4,6 +4,7 @@ import yaml
 import itertools as it
 import multiprocessing as mp
 import numpy as np
+import healpy as hp
 import pandas as pd
 import pymaster as nmt
 import flask
@@ -64,6 +65,8 @@ for ii, (i, j) in enumerate(pairs):
     if i == j:
         cl += csh.pclnoise_make(cshcat[i], cshmask[i])
     cl /= np.mean(cshmask[i] * cshmask[j])
+    if conf['pixwin']:
+        cl /= np.array([hp.pixwin(conf['nside'])] * 4)**2
     cl_in[i][j] = cl
     if i != j:
         cl_in[j][i] = cl

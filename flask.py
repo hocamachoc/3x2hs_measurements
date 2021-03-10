@@ -22,6 +22,15 @@ def cshcat_make(map_fn, nbar, sigma_e, fgoodmap_fn, fgood_thold=0.0,
 
     gamma1, gamma2, ip_good, nside_map, fgoodmap = ggmap_load(
         map_fn, fgoodmap_fn, fgood_thold=fgood_thold)
+
+    # Debug:
+#    fsky = fgoodmap.sum() / hp.nside2npix(nside_map)
+    fsky = ip_good.shape[0] / hp.nside2npix(nside_map)
+    print("DEBUG: fsky(+1)", fsky, 1+fsky)
+    nbar = nbar * (1.0 + fsky)
+#    sigma_e = sigma_e / np.sqrt(1.0 + fsky)
+    print(sigma_e**2 / nbar)
+
     cshcat['ra'], cshcat['dec'], nc_map = ggmap_sample_positions(
         ip_good, nside_map, nbar, fgoodmap, seed=seed)
     dg1, dg2 = cshcat_samplegamma(sigma_e, nc_map.sum(), seed=seed)
@@ -67,7 +76,7 @@ def ggmap_sample_positions(ip_good, nside, nbar, fgoodmap, seed=None,
     np.random.seed(seed)
     nbar_pix = nbar * hp.nside2pixarea(nside, degrees=True) * 3600.0
     nc_map = np.random.poisson(nbar_pix, len(ip_good))
-    
+
     ip_good_nest = hp.ring2nest(nside, ip_good)
     ipix_nest = [rd.sample(range(ip_good_nest[i] * 4**nside_up,
                                  (ip_good_nest[i] + 1) * 4**nside_up),
@@ -83,8 +92,8 @@ def cshcat_samplegamma(sigma_e, ngal, seed=None):
     """Sample shear dispersion
     """
     np.random.seed(seed)
-    dgamma1 = sigma_e / np.sqrt(2.0) * np.random.randn(ngal)
-    dgamma2 = sigma_e / np.sqrt(2.0) * np.random.randn(ngal)
+    dgamma1 = sigma_e * np.random.randn(ngal)
+    dgamma2 = sigma_e * np.random.randn(ngal)
 
     return dgamma1, dgamma2
 
@@ -153,7 +162,7 @@ def load_inputcl(i, j, lmax):
     fn = f'{idir}/Y3_5x2pt_Nsource4-Cl_f10z{i+1}f10z{j+1}.dat'
     # TODO: Check this, normally, l starts at 1 on FLASK/CLike predictions.
     cl = np.loadtxt(fn, usecols=1)
-    cl = np.insert(cl, 1, 0)[:lmax]
+    cl = np.insert(cl, 0, 0)[:lmax]
     return np.array([cl] + [np.zeros_like(cl)] * 3)
 
 

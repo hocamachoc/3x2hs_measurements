@@ -4,7 +4,9 @@ nside: 512
 flaskdir: "/global/cscratch1/sd/faoli/flask_desy3/maskedcats"
 fgooddir: "/global/cscratch1/sd/faoli/flask_desy3/cookies"
 elledges: "etc/binCDFid.txt"
+pixwin: True
 neff: [1.476, 1.479, 1.484, 1.461]
 sigma_e: [0.247, 0.266, 0.263, 0.314]
 odir: "/global/cscratch1/sd/faoli/flask_desy3/cls"
 nonoise: False
+save_maps: False

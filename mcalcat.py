@@ -1,7 +1,7 @@
 from fitsio import FITS
 from pandas import DataFrame, concat
 from healpix_util import HealPix
-from healpy import npix2nside
+from healpy import npix2nside, read_map
 from numpy import argwhere, isin, ones
 from multiprocessing import Pool
 from os.path import exists
@@ -10,21 +10,20 @@ mcalpath = 'mcalcat.fits.gz'
 
 
 # def mcalcat_process(cat, zbin, mask, nside=4096):
-def mcalcat_process(cat, zbin, nside):
+def mcalcat_process(cat, zbin, nside, fgoodmap):
     if exists(mcalpath):
         mcat = mcalcat_read(mcalpath)
         return mcat
     cat = mcalcat_load(cat)
+    # cat = mcalcat_prune(cat, fgoodmap)
     cat = mcalcat_addip(cat, nside)
     cat = mcalcat_addzbin(cat, zbin)
-    # cat = mcalcat_prune(cat, mask)
     cat = mcalcat_addR(cat)
     cat = mcalcat_splitzbins(cat)
     with Pool(processes=len(cat)) as pool:
         mcat = pool.map(mcal_addgg, cat)
     mcalcat_write(mcat, mcalpath)
-    print([(c['g1'].mean(), c['g1'].std(), c['g1'].mean(), c['g2'].std())
-           for c in mcat])
+
     return mcat
 
 
@@ -77,11 +76,16 @@ def mcalcat_addR(d):
     return d.drop(['R11', 'R22'], axis=1)
 
 
-# def mcalcat_prune(d, mask):
-#     nside = npix2nside(len(mask))
-#     ipgood = argwhere(mask > 0).flatten()
-#     m = isin(d[f'ip{nside}'].values, ipgood)
-#     return d[m]
+def mcalcat_prune(d, fgoodmap_fn, fgood_thold=0.0):
+    fgoodmap = read_map(fgoodmap_fn, verbose=False)
+    nside = npix2nside(len(fgoodmap))
+    ipgood = argwhere(fgoodmap > fgood_thold).flatten()
+    if f'ip{nside}' not in d:
+        ip = mcalcat_addip(d, nside)[f'ip{nside}'].values
+    else:
+        ip = d[f'ip{nside}'].values
+    m = isin(ip, ipgood)
+    return d[m]
 
 
 def mcalcat_addip(d, nside):
