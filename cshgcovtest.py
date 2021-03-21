@@ -11,6 +11,7 @@ import flask
 import mcalcat
 import csh
 
+sys.stdout.flush()  # For the impatient people :).
 
 # Configuration file
 conf = sys.argv[1]
@@ -39,8 +40,14 @@ elif conf['type'] == 'y1metacal':
 else:
     raise ValueError(f"Computation type {conf['type']} not implemented")
 
-bins = nmt.NmtBin.from_edges(*np.loadtxt(conf['elledges'], unpack=True,
-                                         dtype='i4'))
+# Bandpower binning - always from 0 - 3 * nside.
+elledges = np.loadtxt(conf['elledges'], dtype=int)
+elledges = elledges[(elledges <= 3 * conf['nside'])]
+if elledges[0] > 0:
+    elledges = np.insert(elledges, 0, 0)
+if elledges[-1] < 3 * conf['nside']:
+    elledges = np.append(elledges, 3 * conf['nside'])
+bins = nmt.NmtBin.from_edges(elledges[:-1], elledges[1:])
 
 print("Constructing fields")
 cshmask = [csh.mask_make(cshcat[i], conf['nside'])

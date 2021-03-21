@@ -27,9 +27,9 @@ def cat_fromflsk(cshcat_fn, nside, nonoise=False):
     cshcat['R'] = np.ones(cshcat.shape[0])
     cshcat['w'] = np.ones(cshcat.shape[0])
 
-    # Apply corrections
-    cshcat['g1'] -= np.average(cshcat['g1'], weights=cshcat['w'])
-    cshcat['g2'] -= np.average(cshcat['g2'], weights=cshcat['w'])
+    # # Apply corrections
+    # cshcat['g1'] -= np.average(cshcat['g1'], weights=cshcat['w'])
+    # cshcat['g2'] -= np.average(cshcat['g2'], weights=cshcat['w'])
 
     # Shape noise
     cshcat['varg'] = 0.5 * (cshcat['g1']**2 + cshcat['g2']**2)

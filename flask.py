@@ -1,4 +1,5 @@
-"""Module handling post-processing of FLASK simulations
+"""
+This module handles with post-processing of FLASK simulations
 """
 import pandas as pd
 import numpy as np
@@ -15,21 +16,14 @@ import sys
 
 def cshcat_make(map_fn, nbar, sigma_e, fgoodmap_fn, fgood_thold=0.0,
                 seed=None):
-    """Generates a cosmic-shear catalog for a FLASK simulation realization.
+    """
+    Generates a cosmic-shear catalog for a FLASK simulation realization.
     """
     cshcat = pd.DataFrame(columns=['ra', 'dec', 'g1', 'g2',
                                    'g1_true', 'g2_true'])
 
     gamma1, gamma2, ip_good, nside_map, fgoodmap = ggmap_load(
         map_fn, fgoodmap_fn, fgood_thold=fgood_thold)
-
-    # Debug:
-#    fsky = fgoodmap.sum() / hp.nside2npix(nside_map)
-    fsky = ip_good.shape[0] / hp.nside2npix(nside_map)
-    print("DEBUG: fsky(+1)", fsky, 1+fsky)
-    nbar = nbar * (1.0 + fsky)
-#    sigma_e = sigma_e / np.sqrt(1.0 + fsky)
-    print(sigma_e**2 / nbar)
 
     cshcat['ra'], cshcat['dec'], nc_map = ggmap_sample_positions(
         ip_good, nside_map, nbar, fgoodmap, seed=seed)
@@ -46,11 +40,13 @@ def cshcat_make(map_fn, nbar, sigma_e, fgoodmap_fn, fgood_thold=0.0,
 
 
 def ggmap_load(map_fn, fgoodmap_fn, fgood_thold=0.0):
-    """Loads a shear map from a weak-lensing FLASK simulated map (kggmap) and
-    reduce it to a footprint specified by a fracgood map. Note we're keeping
-    the resolution, i.e., the resolution of the output ggmap is the same of the
-    input kggmap.
-
+    """
+    Loads a shear map from a weak-lensing FLASK simulated map (kggmap) and
+    reduce it to a footprint specified by a fracgood map keeping only the shear
+    components (ggmap). Note we're keeping the resolution, i.e., the resolution
+    of the output ggmap is the same of the input kggmap. Note further all
+    output maps are for "good", i.e., inside footprint pixels, not full-sky
+    maps.
     """
     nside_map = ft.read_header(map_fn, 1)['nside']
     nside_msk = ft.read_header(fgoodmap_fn, 1)['nside']
@@ -71,7 +67,11 @@ def ggmap_load(map_fn, fgoodmap_fn, fgood_thold=0.0):
 
 def ggmap_sample_positions(ip_good, nside, nbar, fgoodmap, seed=None,
                            nside_up=4):
-    """Samples the positions of galaxies
+    """
+    Samples positions of galaxies inside a footprint matching an angular number
+    density nbar. Currently, this do not take into account a frac-good map,
+    i.e, assumes the whole area of pixels inside the footprint as covered by
+    the footprint.
     """
     np.random.seed(seed)
     nbar_pix = nbar * hp.nside2pixarea(nside, degrees=True) * 3600.0
@@ -89,7 +89,8 @@ def ggmap_sample_positions(ip_good, nside, nbar, fgoodmap, seed=None,
 
 
 def cshcat_samplegamma(sigma_e, ngal, seed=None):
-    """Sample shear dispersion
+    """
+    Sample cosmic-shear dispersion
     """
     np.random.seed(seed)
     dgamma1 = sigma_e * np.random.randn(ngal)
@@ -99,7 +100,8 @@ def cshcat_samplegamma(sigma_e, ngal, seed=None):
 
 
 def process_one_kggmap(iseed, ick, iz, flaskdir, outdir, nbar, sigma_e):
-    """Process a single seed
+    """
+    Processes a single FLASK seed
     """
     fgoodmap_fn = f"{flaskdir}/cookies/ck{ick+1}_desy3_goldv2p2p1.fits.gz"
     map_fn = f"{flaskdir}/4096/seed{iseed+1}/kappa-gamma-f10z{iz+1}.fits"
@@ -112,7 +114,8 @@ def process_one_kggmap(iseed, ick, iz, flaskdir, outdir, nbar, sigma_e):
 
 
 def lnscat_load(iseed, flaskdir):
-    """Load FLASK lens-catalog to a pandas data-frame
+    """
+    Loads a FLASK lens-catalog to a pandas data-frame
     """
     lnscat_fn = f"{flaskdir}/4096/seed{iseed+1}/lens-catalog.fits.gz"
     lnscat = ft.read(lnscat_fn, columns=['RA', 'DEC', 'galtype'])
@@ -123,7 +126,8 @@ def lnscat_load(iseed, flaskdir):
 
 
 def lnscat_addck(lnscat, flaskdir, nck=2, nz_lns=5, fgood_thold=0.0):
-    """Add cookie-cut information to lnscat
+    """
+    Adds cookie-cut information to lnscat
     """
     fgoodmap_fn = [f"{flaskdir}/cookies/ck{ick+1}_desy3_goldv2p2p1.fits.gz"
                    for ick in range(nck)]
@@ -143,7 +147,8 @@ def lnscat_addck(lnscat, flaskdir, nck=2, nz_lns=5, fgood_thold=0.0):
     return lnscat
 
 def process_lenscat(iseed, flaskdir, outdir, nz_lns=5, nck=2):
-    """Process a single seed FLASK lens-catalog
+    """
+    Processes a single seed FLASK lens-catalog
     """
     lnscat = lnscat_load(iseed, flaskdir)
     lnscat = lnscat_addck(lnscat, flaskdir)
@@ -155,19 +160,21 @@ def process_lenscat(iseed, flaskdir, outdir, nz_lns=5, nck=2):
             to_parquet(cat_fn, index=False)
     return
 
-def load_inputcl(i, j, lmax):
-    """Load input Cls
+def load_inputcl(i, j, lmax,
+                 idir="/global/cscratch1/sd/faoli/flask_desy3/Cl_flaskv2p0_nolimber_emu_Nsource4"):
     """
-    idir = "/global/cscratch1/sd/faoli/flask_desy3/Cl_flaskv2p0_nolimber_emu_Nsource4"
+    Loads FLASK input Cls to a numpy array
+    """
     fn = f'{idir}/Y3_5x2pt_Nsource4-Cl_f10z{i+1}f10z{j+1}.dat'
-    # TODO: Check this, normally, l starts at 1 on FLASK/CLike predictions.
+    # TODO: Introduce a check here. Normally, l starts at 1 on FLASK/CLike
+    # predictions, but we can introduce a check to allow for generality.
     cl = np.loadtxt(fn, usecols=1)
     cl = np.insert(cl, 0, 0)[:lmax]
     return np.array([cl] + [np.zeros_like(cl)] * 3)
 
 
 if __name__ == "__main__":
-    sys.stdout.flush()
+    sys.stdout.flush()  # For the impatient people :).
     
     parser = ArgumentParser()
     parser.add_argument("--iseed", type=int, required=True,
