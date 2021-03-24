@@ -1,6 +1,6 @@
 type: 'flask'
 nz: 4
-nside: 2048
+nside: 512
 flaskdir: "/global/cscratch1/sd/faoli/flask_desy3/maskedcats"
 fgooddir: "/global/cscratch1/sd/faoli/flask_desy3/cookies"
 elledges: "etc/binCDFid.txt"
