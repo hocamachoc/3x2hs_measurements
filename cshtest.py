@@ -25,10 +25,11 @@ print(conf, odir)
 
 if conf['type'] == 'flask':
     real_id = int(sys.argv[2])   # Realization ID. Starts at 0
-    iseed, ick = real_id // 2 + 1, real_id % 2 + 1
+    iseed, ick = real_id // conf['nck'] + 1, real_id % conf['nck'] + 1
     print(iseed, ick)
-    cshcat = [f"{conf['flaskdir']}/srccat_z{iz+1}_s{iseed}_ck{ick}.parquet"
-              for iz in range(conf['nz'])]
+    cshcat = [f"{conf['flaskdir']}/maskedcats" +
+              f"/srccat_z{iz+1}_s{iseed}_ck{ick}.parquet"
+              for iz in range(conf['nz_src'])]
     cshcat = [csh.cat_fromflsk(fn, conf['nside'], conf['nonoise'])
               for fn in cshcat]
     ofn = f'{odir}/cls_csh_s{iseed}_ck{ick}.npz'
@@ -49,13 +50,13 @@ if elledges[-1] < 3 * conf['nside']:
 bins = nmt.NmtBin.from_edges(elledges[:-1], elledges[1:])
 
 cls = {'ell_eff': bins.get_effective_ells()}
-for i in range(conf['nz']):
+for i in range(conf['nz_src']):
     cshcat_i = cshcat[i]
     cshmask_i = csh.mask_make(cshcat_i, conf['nside'])
     field_i = csh.field_make(cshcat_i, cshmask_i,
                              save_maps=conf['save_maps'],
                              maps_prefix=f'{odir}/zbin{i}')
-    for j in range(i, conf['nz']):
+    for j in range(i, conf['nz_src']):
         cshcat_j = cshcat[j]
         cshmask_j = csh.mask_make(cshcat_j, conf['nside'])
         field_j = csh.field_make(cshcat_j, cshmask_j)
