@@ -235,6 +235,19 @@ def load_inputcl(i, j, lmax,
     return np.array([cl] + [np.zeros_like(cl)] * 3)
 
 
+def load_inputcl_y1(i, j, lmax,
+                 idir="/global/cscratch1/sd/hcamacho/flask_desy1/Cl_flask"):
+    """
+    Loads FLASK input Cls to a numpy array
+    """
+    fn = f'{idir}/Y15x2pt-Cl_f2z{i+1}_f2z{j+1}'
+    # TODO: Introduce a check here. Normally, l starts at 1 on FLASK/CLike
+    # predictions, but we can introduce a check to allow for generality.
+    cl = np.loadtxt(fn, usecols=1)
+    cl = np.insert(cl, 0, 0)[:lmax]
+    return np.array([cl] + [np.zeros_like(cl)] * 3)
+
+
 if __name__ == "__main__":
     parser = ArgumentParser(description="FLASK post-processing")
     parser.add_argument("conf", nargs=1,

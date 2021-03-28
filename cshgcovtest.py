@@ -25,10 +25,11 @@ print(conf, odir)
 
 if conf['type'] == 'flask':
     real_id = int(sys.argv[2])   # Realization ID. Starts at 0
-    iseed, ick = real_id // 2 + 1, real_id % 2 + 1
+    iseed, ick = real_id // conf['nck'] + 1, real_id % conf['nck'] + 1
     print(iseed, ick)
-    cshcat = [f"{conf['flaskdir']}/srccat_z{iz+1}_s{iseed}_ck{ick}.parquet"
-              for iz in range(conf['nz'])]
+    cshcat = [f"{conf['flaskdir']}/maskedcats"
+              + f"/srccat_z{iz+1}_s{iseed}_ck{ick}.parquet"
+              for iz in range(conf['nz_src'])]
     cshcat = [csh.cat_fromflsk(fn, conf['nside'], conf['nonoise'])
               for fn in cshcat]
     print(cshcat)
@@ -51,21 +52,21 @@ bins = nmt.NmtBin.from_edges(elledges[:-1], elledges[1:])
 
 print("Constructing fields")
 cshmask = [csh.mask_make(cshcat[i], conf['nside'])
-           for i in  range(conf['nz'])]
+           for i in  range(conf['nz_src'])]
 field = [csh.field_make(cshcat[i], cshmask[i])
-         for i in range(conf['nz'])]
+         for i in range(conf['nz_src'])]
 
-pairs = [(i, j)
-         for i, j in it.combinations_with_replacement(range(conf['nz']), 2)]
+pairs = [(i, j) for i, j in
+         it.combinations_with_replacement(range(conf['nz_src']), 2)]
 
 print("Preparing PCL workspaces")
 w = [csh.mcm_make(field[i], field[j], bins) for i, j in pairs]
 
 print("Loading input Cls")
 lmax = 3 * conf['nside']
-cl_in = [[None for i in range(conf['nz'])] for j in range(conf['nz'])]
+cl_in = [[None for i in range(conf['nz_src'])] for j in range(conf['nz_src'])]
 for ii, (i, j) in enumerate(pairs):
-    cl = flask.load_inputcl(i, j, lmax)
+    cl = flask.load_inputcl_y1(i, j, lmax)
     print(cl.shape, w[ii].wsp.lmax+1, type(w[ii].wsp.lmax+1), ii, type(ii))
     cl[:, :w[ii].wsp.lmax+1] = w[ii].couple_cell(cl)
     cl[:, w[ii].wsp.lmax:] = cl[:, w[ii].wsp.lmax][:, None]
