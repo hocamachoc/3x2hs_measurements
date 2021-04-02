@@ -4,7 +4,7 @@ nz_lns: 5
 nck: 8
 nside: 1024
 flaskdir: "/global/cscratch1/sd/hcamacho/flask_desy1"
-elledges: "etc/binCDFid.txt"
+elledges: "etc/binLogN20Lmin30Lmax3000.txt"
 neff: [1.5, 1.5, 1.5, 1.7]
 sigma_e: [0.3, 0.3, 0.3, 0.3]
 odir: "/global/cscratch1/sd/hcamacho/flask_desy1/cls"
