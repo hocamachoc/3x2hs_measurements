@@ -15,7 +15,7 @@ def mcalcat_process(cat, zbin, nside, fgoodmap):
         mcat = mcalcat_read(mcalpath)
         return mcat
     cat = mcalcat_load(cat)
-    # cat = mcalcat_prune(cat, fgoodmap)
+    cat = mcalcat_prune(cat, fgoodmap)
     cat = mcalcat_addip(cat, nside)
     cat = mcalcat_addzbin(cat, zbin)
     cat = mcalcat_addR(cat)
@@ -61,7 +61,9 @@ def mcalcat_splitzbins(d):
 
 def mcalcat_addzbin(d, zbin):
     fits = FITS(zbin)
-    zbin = fits[1].read(columns=['coadd_objects_id', 'zbin_mcal'])
+    zbin = fits[1].read(columns=['coadd_objects_id', 'zbin_mcal',
+                                 'zbin_mcal_1p', 'zbin_mcal_1m',
+                                 'zbin_mcal_2p', 'zbin_mcal_2m'])
     fits.close()
     zbin = zbin.byteswap().newbyteorder()
     zbin = DataFrame.from_records(zbin).set_index('coadd_objects_id')
@@ -71,9 +73,13 @@ def mcalcat_addzbin(d, zbin):
 
 
 def mcalcat_addR(d):
-    aux = d['R11'].add(d['R22'])
-    d['R'] = aux.div(2.0)
-    return d.drop(['R11', 'R22'], axis=1)
+    Rgamma = d['R11'].add(d['R22'])
+    Rs = (d['zbin_mcal_1p'] - d['zbin_mcal_1m'])\
+         .add(d['zbin_mcal_2p'] - d['zbin_mcal_2m'])
+    Rs = Rs.div(0.02)
+    d['R'] = (Rgamma + Rs).div(2.0)
+    return d.drop(['R11', 'R22', 'zbin_mcal_1p', 'zbin_mcal_1m',
+                   'zbin_mcal_2p', 'zbin_mcal_2m'], axis=1)
 
 
 def mcalcat_prune(d, fgoodmap_fn, fgood_thold=0.0):
