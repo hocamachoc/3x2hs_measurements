@@ -49,6 +49,10 @@ if elledges[-1] < 3 * conf['nside']:
     elledges = np.append(elledges, 3 * conf['nside'])
 bins = nmt.NmtBin.from_edges(elledges[:-1], elledges[1:])
 
+# Create dirs (if needed)
+if not os.path.exists(odir):
+    os.makedirs(odir)
+
 cls = {'ell_eff': bins.get_effective_ells()}
 for i in range(conf['nz_src']):
     cshcat_i = cshcat[i]
@@ -71,9 +75,6 @@ for i in range(conf['nz_src']):
             if conf['pixwin']:
                 nls_coup /= np.array([hp.pixwin(conf['nside'])] * 4)**2
             cls[f'nl_{i}'] = w.decouple_cell(nls_coup)
-            
-if not os.path.exists(odir):
-    os.makedirs(odir)
 
 print("Writing", ofn)
 np.savez_compressed(ofn, **cls)
