@@ -29,18 +29,18 @@ cls = {'ell_eff': bins.get_effective_ells()}
 def mcm_process(ick, zj, dmask_i, cshmask_j, bins, mcm_dir):
     """ Return MCM workspace for pos - pos
     """
-    #print(f'mcm creation - ck{ick}: start')
+    print(f'mcm creation - ck{ick} source{zj}: start', flush=True)
     path = f"{mcm_dir}/mcm_ggl_ck{ick}_source_z{zj}.fits"
     w = nmt.NmtWorkspace()
     if exists(path) and getsize(path) > 0:
         w.read_from(path)
-    #    print(f'mcm creation - ck{ick} source{zj}: already exists')
+        print(f'mcm creation - ck{ick} source{zj}: already exists',flush=True)
         return w
     f0 = nmt.NmtField(dmask_i, [dmask_i])
     f2 = nmt.NmtField(cshmask_j, [cshmask_j, cshmask_j])
     w.compute_coupling_matrix(f0, f2, bins)
     w.write_to(path)
-    #print(f'mcm creation - ck{ick} source{zj}: checked')
+    print('mcm creation - ck{ick} source{zj}: created',flush=True)
     return w
 
 if conf['type'] == 'flask':
@@ -48,45 +48,39 @@ if conf['type'] == 'flask':
     #iseed, ick = real_id // 2 + 1, real_id % 2 + 1
     #print(iseed, ick)
     
-    nid = int(sys.argv[2]) # goes from 0 to 1199
-    iseed, ick = nid//8+1, nid%8+1
-
-    if True:
-        print(f"\n SEED {iseed} COOKIE {ick} BEGAN \n")
-        print(f"processing cshcat ...")
-        cshcat_fn = [f"{conf['flaskdir']}/srccat_z{iz+1}_s{iseed}_ck{ick}.parquet"
-                 for iz in range(conf['nz_source'])]
-        cshcat = [csh.cat_fromflsk(fn, conf['nside'])
+    iseed = 1
+    ick = int(sys.argv[2])
+    
+    #    print(f"\n SEED {iseed} COOKIE {ick} BEGAN \n")
+    print(f"processing cshcat ...")
+    cshcat_fn = [f"{conf['flaskdir']}/srccat_z{iz+1}_s{iseed}_ck{ick}.parquet"
+                     for iz in range(conf['nz_source'])]
+    cshcat = [csh.cat_fromflsk(fn, conf['nside'])
                   for fn in cshcat_fn]
-        ofn = f'{odir}/cls_ggl_s{iseed}_ck{ick}.npz'
-
-        if os.path.exists(ofn):
-            print(f'file cls_ggl_s{iseed}_ck{ick}.npz already exists in {odir}', flush=True)
-            exit()
+    #    ofn = f'{odir}/cls_ggl_s{iseed}_ck{ick}.npz'
     
-        field_i = []
-        print(f"getting dmask ...")
-        dmask_i = hp.read_map(f'{conf["ck_dir"]}/ck{ick}_nside{conf["nside"]}.fits')
-        print(f"getting density fields ...")
-        for i in range(conf['nz_lens']):
-            dmap_i = hp.read_map(f'{conf["dmap_dir"]}/dmap_z{i+1}_nside{conf["nside"]}_s{iseed}.fits')	
-            field_i.append(nmt.NmtField(dmask_i, [dmap_i],  purify_e=False, purify_b=False))
+    #    field_i = []
+    print(f"getting dmask ...")
+    dmask_i = hp.read_map(f'{conf["ck_dir"]}/ck{ick}_nside{conf["nside"]}.fits')
+    #    print(f"getting density fields ...")
+    #    for i in range(conf['nz_lens']):
+    #        dmap_i = hp.read_map(f'{conf["dmap_dir"]}/dmap_z{i}_nside{conf["nside"]}_s{iseed}.fits')	
+    #        field_i.append(nmt.NmtField(dmask_i, [dmap],  purify_e=False, purify_b=False))
 
-        field_j = []
-        cshmask_j = []
-        print(f"getting shear fields")
-        for j in range(conf['nz_source']):
-            cshcat_j = cshcat[j]
-            cshmask_j.append(csh.mask_make(cshcat_j, conf['nside']))
-            field_j.append(csh.field_make(cshcat_j, cshmask_j[j]))
+    #    field_j = []
+    cshmask_j = []
+    print(f"getting shear mask")
+    for j in range(conf['nz_source']):
+        cshcat_j = cshcat[j]
+        cshmask_j.append(csh.mask_make(cshcat_j, conf['nside']))
+    #        field_j.append(csh.field_make(cshcat_j, cshmask_j))
     
-        for i in range(conf['nz_lens']):
-            for j in range(conf['nz_source']):
-                print(f"computing cls: sd{iseed}-ck{ick}-z{i+1}z{j+1} ...", flush=True)
-                w = mcm_process(ick, j+1, dmask_i, cshmask_j[j], bins, conf['mcm_dir'])
-                cls[f'bpwrwin_{i}{j}'] = w.get_bandpower_windows()
-                cls[f'cl_{i}{j}'] = w.decouple_cell(
-                    nmt.compute_coupled_cell(field_i[i], field_j[j]))
+    #for i in range(conf['nz_lens']):
+    for j in range(conf['nz_source']):
+        w = mcm_process(ick, j+1, dmask_i, cshmask_j[j], bins, conf['mcm_dir'])
+            #    cls[f'bpwrwin_{i}{j}'] = w.get_bandpower_windows()
+            #    cls[f'cl_{i}{j}'] = w.decouple_cell(
+            #        nmt.compute_coupled_cell(field_i, field_j))
 
 
 elif conf['type'] == 'y1metacal':
@@ -118,10 +112,10 @@ else:
     raise ValueError(f"Computation type {conf['type']} not implemented")
 
 
-if not os.path.exists(odir):
-    os.makedirs(odir)
+#if not os.path.exists(odir):
+#    os.makedirs(odir)
 
-print(f"saving cls ...")
-np.savez_compressed(ofn, **cls)
+#print(f"saving cls ...")
+#np.savez_compressed(ofn, **cls)
 
-print('DONE \n')
+#print('DONE \n')
