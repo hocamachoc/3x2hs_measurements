@@ -8,7 +8,7 @@ nside: 1024
 flaskdir: "/store/hcamacho/flask_desy1"
 odir: "/store/hcamacho/flask_desy1/cls"
 elledges: "etc/binLogN20Lmin30Lmax3000.txt"
-neff: [1.5, 1.5, 1.5, 1.7]
+neff: [1.5, 1.5, 1.5, 0.7]
 sigma_e: [0.3, 0.3, 0.3, 0.3]
 nonoise: False
 save_maps: False
