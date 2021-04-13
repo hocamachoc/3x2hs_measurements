@@ -1,5 +1,5 @@
 """
-This module handles with post-processing of FLASK simulations
+This module deals with post-processing of FLASK simulations
 """
 import pandas as pd
 import numpy as np
@@ -279,7 +279,8 @@ if __name__ == "__main__":
             cat_fn = pool.starmap(process_one_pmap, args)
 
     elif o.des_release == 'y3':
-        process_lenscat(o.iseed, o.flaskdir, o.outdir)
+        kggpref = f"kappa-gamma-f10"
+        process_lenscat(o.iseed, conf['flaskdir'], outdir)
 
     else:
         raise NotImplementedError("Currently only y1 and y3 des_release(s) "

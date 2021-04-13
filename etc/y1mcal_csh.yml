@@ -5,8 +5,8 @@ nside: 1024
 mcalcat: "/global/cscratch1/sd/hcamacho/y1data/mcal-y1a1-combined-riz-unblind-v4-matched.fits"
 zbin: "/global/cscratch1/sd/hcamacho/y1data/y1_source_redshift_binning_v1.fits"
 fgoodmap: "/global/cscratch1/sd/hcamacho/y1data/DES_Y1A1_3x2pt_redMaGiC_MASK_HPIX4096RING.fits"
-elledges: "etc/binLogN20Lmin30Lmax3000.txt"
+elledges: "etc/binNicola2020.txt"
 odir: "/global/cscratch1/sd/hcamacho/y1data_cls"
-save_maps: True
+save_maps: False
 pixwin: False
 nonoise: False

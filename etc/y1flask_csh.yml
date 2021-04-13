@@ -3,12 +3,12 @@ nz_src: 4
 nz_lns: 5
 nck: 8
 nside: 1024
-# flaskdir: "/global/cscratch1/sd/hcamacho/flask_desy1"
-# odir: "/global/cscratch1/sd/hcamacho/flask_desy1/cls"
-flaskdir: "/store/hcamacho/flask_desy1"
-odir: "/store/hcamacho/flask_desy1/cls"
+flaskdir: "/global/cscratch1/sd/hcamacho/flask_desy1"
+odir: "/global/cscratch1/sd/hcamacho/flask_desy1/cls"
+# flaskdir: "/store/hcamacho/flask_desy1"
+# odir: "/store/hcamacho/flask_desy1/cls"
 elledges: "etc/binLogN20Lmin30Lmax3000.txt"
-neff: [1.5, 1.5, 1.5, 1.7]
+neff: [1.5, 1.5, 1.5, 0.7]
 sigma_e: [0.3, 0.3, 0.3, 0.3]
 nonoise: False
 save_maps: False

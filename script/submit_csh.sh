@@ -14,9 +14,9 @@ uname -a
 
 # # FLASK Y1
 # time python3 cshtest.py etc/y1flask_csh.yml ${SLURM_ARRAY_TASK_ID}
-# # FLASK Y3
-# time python3 cshtest.py etc/y3flask_csh.yml ${SLURM_ARRAY_TASK_ID}
-# Metacal
-time python3 cshtest.py etc/y1mcal_csh.yml
+# FLASK Y3
+time python3 cshtest.py etc/y3flask_csh.yml ${SLURM_ARRAY_TASK_ID}
+# # Metacal
+# time python3 cshtest.py etc/y1mcal_csh.yml
 
 conda deactivate
