@@ -7,12 +7,13 @@ import healpix_util as hu
 import pymaster as nmt
 
 
-def cat_fromflsk(cshcat_fn, nside, truth=False):
+def cat_fromflsk(cshcat_fn, nside, nonoise=False):
     """Load FLASK cosmic shear catalog and adds additional info
     """
     cshcat = pd.read_parquet(cshcat_fn)
+
     # Shear
-    if truth:
+    if nonoise:
         cshcat['g1'] = cshcat['g1_true']
         cshcat['g2'] = cshcat['g2_true']
     cshcat.drop(['g1_true', 'g2_true'], axis=1, inplace=True)
@@ -26,9 +27,9 @@ def cat_fromflsk(cshcat_fn, nside, truth=False):
     cshcat['R'] = np.ones(cshcat.shape[0])
     cshcat['w'] = np.ones(cshcat.shape[0])
 
-    # Apply corrections
-    cshcat['g1'] -= np.average(cshcat['g1'], weights=cshcat['w'])
-    cshcat['g2'] -= np.average(cshcat['g2'], weights=cshcat['w'])
+    # # Apply corrections
+    # cshcat['g1'] -= np.average(cshcat['g1'], weights=cshcat['w'])
+    # cshcat['g2'] -= np.average(cshcat['g2'], weights=cshcat['w'])
 
     # Shape noise
     cshcat['varg'] = 0.5 * (cshcat['g1']**2 + cshcat['g2']**2)
@@ -58,6 +59,8 @@ def field_make(cshcat, cshmask, purify_e=False, purify_b=False,
     if save_maps:
         hp.write_map(f'{maps_prefix}_we1map.fits', wg1map, overwrite=True)
         hp.write_map(f'{maps_prefix}_we2map.fits', wg2map, overwrite=True)
+        hp.write_map(f'{maps_prefix}_maskmap.fits', wg2map, overwrite=True)
+
 
     Rbias_mean = ((cshcat['R'] * cshcat['w']).sum() / cshcat['w'].sum())
 
@@ -91,3 +94,17 @@ def pclnoise_make(cshcat, cshmask):
     pcl_noise = np.full(3 * nside, pix_area * w2varg_pixmean / Rbias_mean**2)
     return np.array([pcl_noise, np.zeros(pcl_noise.shape[0]),
                      np.zeros(pcl_noise.shape[0]), pcl_noise])
+
+
+def gcov_make(fa1, fa2, fb1, fb2, wa, wb, cla1b1, cla1b2, cla2b1, cla2b2,
+              n_ell):
+    """Returns the Gaussian covariance matrix fa1fa2_fb1fb2
+    """
+    cw = nmt.NmtCovarianceWorkspace()
+    cw.compute_coupling_coefficients(fa1, fb1, fa2, fb2)
+    cov = nmt.gaussian_covariance(cw, 2, 2, 2, 2,  # Spins of the 4 fields
+                                  # EE, EB, BE, BB
+                                  cla1b1, cla1b2, cla2b1, cla2b2,
+                                  wa, wb=wb).reshape([n_ell, 4, n_ell, 4])
+    return cov
+    

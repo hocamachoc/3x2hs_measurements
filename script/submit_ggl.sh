@@ -12,11 +12,7 @@ export OMP_NUM_THREADS=$(lscpu| grep -e '^CPU(s):'| awk '{print $2}')
 echo "Max No. of threads: ${OMP_NUM_THREADS}"
 uname -a
 
-# # FLASK Y1
-# time python3 cshtest.py etc/y1flask_csh.yml ${SLURM_ARRAY_TASK_ID}
-# FLASK Y3
-time python3 cshtest.py etc/y3flask_csh.yml ${SLURM_ARRAY_TASK_ID}
-# # Metacal
-# time python3 cshtest.py etc/y1mcal_csh.yml
+# FLASK Y1
+time python3 ggltest.py etc/y1flask_csh.yml ${SLURM_ARRAY_TASK_ID}
 
 conda deactivate
