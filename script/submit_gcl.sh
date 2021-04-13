@@ -13,10 +13,8 @@ echo "Max No. of threads: ${OMP_NUM_THREADS}"
 uname -a
 
 # # FLASK Y1
-# time python3 cshtest.py etc/y1flask_csh.yml ${SLURM_ARRAY_TASK_ID}
+# time python3 gcltest.py etc/y1flask_gcl.yml ${SLURM_ARRAY_TASK_ID}
 # FLASK Y3
-time python3 cshtest.py etc/y3flask_csh.yml ${SLURM_ARRAY_TASK_ID}
-# # Metacal
-# time python3 cshtest.py etc/y1mcal_csh.yml
+time python3 gcltest.py etc/y3flask_gcl.yml ${SLURM_ARRAY_TASK_ID}
 
 conda deactivate
