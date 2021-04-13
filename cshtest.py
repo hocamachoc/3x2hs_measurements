@@ -10,8 +10,8 @@ import pymaster as nmt
 import flask
 import mcalcat
 import csh
-
-sys.stdout.flush()  # For the impatient people :).
+from functools import partial
+print = partial(print, flush=True)  # For the impatient people :).
 
 # Configuration file
 conf = sys.argv[1]
@@ -38,9 +38,10 @@ elif conf['type'] == 'y1metacal':
                                      conf['nside'], conf['fgoodmap'])
     ofn = f'{odir}/cls_csh_mcal.npz'
 else:
-    raise ValueError(f"Computation type {conf['type']} not implemented")
+    raise NotImplementedError(f"Computation type {conf['type']} not"
+                              + " implemented")
 
-# Bandpower binning - always from 0 - 3 * nside.
+# Bandpower binning - always from 0 to 3 * nside.
 elledges = np.loadtxt(conf['elledges'], dtype=int)
 elledges = elledges[(elledges <= 3 * conf['nside'])]
 if elledges[0] > 0:

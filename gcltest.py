@@ -8,8 +8,8 @@ import healpy as hp
 import pandas as pd
 import pymaster as nmt
 import gcl
-
-sys.stdout.flush()  # For the impatient people :).
+from functools import partial
+print = partial(print, flush=True)  # For the impatient people :).
 
 # Configuration file
 conf = sys.argv[1]
@@ -30,10 +30,10 @@ if conf['type'] == 'flask':
     iseed, ick = real_id // conf['nck'] + 1, real_id % conf['nck'] + 1
     print(iseed, ick)
 
+    # Prepare galaxy-clustering stuff
     gclmask = f"{conf['flaskdir']}/cookies/ck{ick}.fits.gz"
     gclmask = gcl.mask_make(gclmask, ick, conf['nside'], odir)
     fsky = gclmask.mean()
-
     gclfield, nobj = [], []
     for iz in range(conf['nz_lns']): 
         gclcat = f"{conf['flaskdir']}/maskedcats"\
@@ -45,12 +45,14 @@ if conf['type'] == 'flask':
                               maps_prefix=f'{odir}/zbin{iz}')
         gclfield.append(f)
         nobj.append(n)
-    
+
+    # Output filename
     ofn = f'{odir}/cls_gcl_s{iseed}_ck{ick}.npz'
 else:
-    raise ValueError(f"Computation type {conf['type']} not implemented")
+    raise NotImplementedError(f"Computation type {conf['type']} not"
+                              + " implemented")
 
-# Bandpower binning - always from 0 - 3 * nside.
+# Bandpower binning - always from 0 to 3 * nside.
 elledges = np.loadtxt(conf['elledges'], dtype=int)
 elledges = elledges[(elledges <= 3 * conf['nside'])]
 if elledges[0] > 0:
