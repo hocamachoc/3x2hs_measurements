@@ -1,5 +1,5 @@
 """
-This module handles with post-processing of FLASK simulations
+This module deals with post-processing of FLASK simulations
 """
 import pandas as pd
 import numpy as np
