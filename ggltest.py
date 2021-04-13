@@ -4,124 +4,109 @@ import yaml
 import itertools as it
 import multiprocessing as mp
 import numpy as np
+import healpy as hp
 import pandas as pd
 import pymaster as nmt
-import healpy as hp
 import flask
 import mcalcat
-import csh
-from os.path import exists, getsize
-
+import csh, gcl
+from functools import partial
+print = partial(print, flush=True)  # For the impatient people :).
 
 # Configuration file
 conf = sys.argv[1]
 with open(conf, 'rt') as f:
     conf = yaml.safe_load(f)
-odir = f"{conf['odir']}/ggl-nside{conf['nside']}"\
+odir = f"{conf['odir']}/nside{conf['nside']}"\
        f"_{os.path.basename(conf['elledges']).replace('.txt', '')}"
+if conf['nonoise']:
+    odir += '_nonoise'
 print(conf, odir)
 
-bins = nmt.NmtBin.from_edges(*np.loadtxt(conf['elledges'], unpack=True,
-                                         dtype='i4'))
-
-cls = {'ell_eff': bins.get_effective_ells()}
-
-def mcm_process(ick, zj, dmask_i, cshmask_j, bins, mcm_dir):
-    """ Return MCM workspace for pos - pos
-    """
-    #print(f'mcm creation - ck{ick}: start')
-    path = f"{mcm_dir}/mcm_ggl_ck{ick}_source_z{zj}.fits"
-    w = nmt.NmtWorkspace()
-    if exists(path) and getsize(path) > 0:
-        w.read_from(path)
-    #    print(f'mcm creation - ck{ick} source{zj}: already exists')
-        return w
-    f0 = nmt.NmtField(dmask_i, [dmask_i])
-    f2 = nmt.NmtField(cshmask_j, [cshmask_j, cshmask_j])
-    w.compute_coupling_matrix(f0, f2, bins)
-    w.write_to(path)
-    #print(f'mcm creation - ck{ick} source{zj}: checked')
-    return w
-
-if conf['type'] == 'flask':
-    #real_id = int(sys.argv[2])   # Realization ID. Starts at 0
-    #iseed, ick = real_id // 2 + 1, real_id % 2 + 1
-    #print(iseed, ick)
-    
-    nid = int(sys.argv[2]) # goes from 0 to 1199
-    iseed, ick = nid//8+1, nid%8+1
-
-    if True:
-        print(f"\n SEED {iseed} COOKIE {ick} BEGAN \n")
-        print(f"processing cshcat ...")
-        cshcat_fn = [f"{conf['flaskdir']}/srccat_z{iz+1}_s{iseed}_ck{ick}.parquet"
-                 for iz in range(conf['nz_source'])]
-        cshcat = [csh.cat_fromflsk(fn, conf['nside'])
-                  for fn in cshcat_fn]
-        ofn = f'{odir}/cls_ggl_s{iseed}_ck{ick}.npz'
-
-        if os.path.exists(ofn):
-            print(f'file cls_ggl_s{iseed}_ck{ick}.npz already exists in {odir}', flush=True)
-            exit()
-    
-        field_i = []
-        print(f"getting dmask ...")
-        dmask_i = hp.read_map(f'{conf["ck_dir"]}/ck{ick}_nside{conf["nside"]}.fits')
-        print(f"getting density fields ...")
-        for i in range(conf['nz_lens']):
-            dmap_i = hp.read_map(f'{conf["dmap_dir"]}/dmap_z{i+1}_nside{conf["nside"]}_s{iseed}.fits')	
-            field_i.append(nmt.NmtField(dmask_i, [dmap_i],  purify_e=False, purify_b=False))
-
-        field_j = []
-        cshmask_j = []
-        print(f"getting shear fields")
-        for j in range(conf['nz_source']):
-            cshcat_j = cshcat[j]
-            cshmask_j.append(csh.mask_make(cshcat_j, conf['nside']))
-            field_j.append(csh.field_make(cshcat_j, cshmask_j[j]))
-    
-        for i in range(conf['nz_lens']):
-            for j in range(conf['nz_source']):
-                print(f"computing cls: sd{iseed}-ck{ick}-z{i+1}z{j+1} ...", flush=True)
-                w = mcm_process(ick, j+1, dmask_i, cshmask_j[j], bins, conf['mcm_dir'])
-                cls[f'bpwrwin_{i}{j}'] = w.get_bandpower_windows()
-                cls[f'cl_{i}{j}'] = w.decouple_cell(
-                    nmt.compute_coupled_cell(field_i[i], field_j[j]))
-
-
-elif conf['type'] == 'y1metacal':
-    cshcat = mcalcat.mcalcat_process(conf['mcalcat'], conf['zbin'],
-                                     conf['nside'])
-    ofn = f'{odir}/cls_ggl_mcal.npz'
-    
-    for i in range(conf['nz_lens']):
-        wc = hp.read_map(f"{conf['redmagic']}/wcountsmap_zbin{i}.fits")	
-        dmask = hp.read_map(f"{conf['redmagic']}/maskmap.fits")
-    
-        nbar = sum(wc[dmask>0])/sum(dmask[dmask>0])
-        print(nbar)
-
-        dmap = np.full(len(dmask), 0.0)
-        dmap[dmask>0] = wc[dmask>0]/(nbar*dmask[dmask>0]) - 1
-	
-        field_i = nmt.NmtField(dmask, [dmap],  purify_e=False, purify_b=False)
-        for j in range(conf['nz_source']):
-            print(i,j)
-            cshcat_j = cshcat[j]
-            cshmask_j = csh.mask_make(cshcat_j, conf['nside'])
-            field_j = csh.field_make(cshcat_j, cshmask_j)
-            w = csh.mcm_make(field_i, field_j, bins)
-            cls[f'bpwrwin_{i}{j}'] = w.get_bandpower_windows()
-            cls[f'cl_{i}{j}'] = w.decouple_cell(
-                nmt.compute_coupled_cell(field_i, field_j))
-else:
-    raise ValueError(f"Computation type {conf['type']} not implemented")
-
-
+# Create dirs (if needed)
 if not os.path.exists(odir):
     os.makedirs(odir)
 
-print(f"saving cls ...")
-np.savez_compressed(ofn, **cls)
+if conf['type'] == 'flask':
+    real_id = int(sys.argv[2])   # Realization ID. Starts at 0
+    iseed, ick = real_id // conf['nck'] + 1, real_id % conf['nck'] + 1
+    print(iseed, ick)
 
-print('DONE \n')
+    # Prepare cosmic-shear stuff
+    cshcat = [f"{conf['flaskdir']}/maskedcats" +
+              f"/srccat_z{iz+1}_s{iseed}_ck{ick}.parquet"
+              for iz in range(conf['nz_src'])]
+    cshcat = [csh.cat_fromflsk(fn, conf['nside'], conf['nonoise'])
+              for fn in cshcat]
+
+    # Prepare galaxy-clustering stuff
+    gclmask = f"{conf['flaskdir']}/cookies/ck{ick}.fits.gz"
+    gclmask = gcl.mask_make(gclmask, ick, conf['nside'], odir)
+    fsky = gclmask.mean()
+    gclfield, nobj = [], []
+    for iz in range(conf['nz_lns']): 
+        gclcat = f"{conf['flaskdir']}/maskedcats"\
+                 + f"/lnscat_z{iz+1}_s{iseed}_ck{ick}.parquet"
+        gclcat = gcl.cat_fromflsk(gclcat, conf['nside'])
+
+        f, n = gcl.field_make(gclcat, gclmask, conf['nside'],
+                              save_maps=conf['save_maps'],
+                              maps_prefix=f'{odir}/zbin{iz}')
+        gclfield.append(f)
+        nobj.append(n)
+
+    # Output filename
+    ofn = f'{odir}/cls_ggl_s{iseed}_ck{ick}.npz'
+else:
+    raise NotImplementedError(f"Computation type {conf['type']} not"
+                              + " implemented")
+
+# Bandpower binning - always from 0 to 3 * nside.
+elledges = np.loadtxt(conf['elledges'], dtype=int)
+elledges = elledges[(elledges <= 3 * conf['nside'])]
+if elledges[0] > 0:
+    elledges = np.insert(elledges, 0, 0)
+if elledges[-1] < 3 * conf['nside']:
+    elledges = np.append(elledges, 3 * conf['nside'])
+bins = nmt.NmtBin.from_edges(elledges[:-1], elledges[1:])
+
+w = nmt.NmtWorkspace()
+
+cls = {'ell_eff': bins.get_effective_ells()}
+
+if conf['nside'] <= 2048:
+    field_i = gclfield
+    field_j = []
+    for j in range(conf['nz_src']):
+        cshcat_j = cshcat[j]
+        cshmask_j = csh.mask_make(cshcat_j, conf['nside'])
+        field_j.append(csh.field_make(cshcat_j, cshmask_j,
+                                 save_maps=conf['save_maps'],
+                                 maps_prefix=f'{odir}/zbin{j}'))
+    for i in range(conf['nz_lns']):
+        for j in range(conf['nz_src']):
+            w.compute_coupling_matrix(field_i[i], field_j[j], bins)
+            cls[f'bpwrwin_{i}{j}'] = w.get_bandpower_windows()
+            cls_coup = nmt.compute_coupled_cell(field_i[i], field_j[j])
+            if conf['pixwin']:
+                cls_coup /= np.array([hp.pixwin(conf['nside'])] * 2)**2
+            cls[f'cl_{i}{j}'] = w.decouple_cell(cls_coup)
+
+else: 
+    for i in range(conf['nz_lns']):
+        field_i = gclfield[i]
+        for j in range(conf['nz_src']):
+            cshcat_j = cshcat[j]
+            cshmask_j = csh.mask_make(cshcat_j, conf['nside'])
+            field_j = csh.field_make(cshcat_j, cshmask_j,
+                                 save_maps=conf['save_maps'],
+                                 maps_prefix=f'{odir}/zbin{j}')
+            w.compute_coupling_matrix(field_i, field_j, bins)
+            cls[f'bpwrwin_{i}{j}'] = w.get_bandpower_windows()
+            cls_coup = nmt.compute_coupled_cell(field_i, field_j)
+            if conf['pixwin']:
+                cls_coup /= np.array([hp.pixwin(conf['nside'])] * 2)**2
+            cls[f'cl_{i}{j}'] = w.decouple_cell(cls_coup)
+
+print("Writing", ofn)
+np.savez_compressed(ofn, **cls)
