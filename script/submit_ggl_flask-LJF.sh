@@ -21,6 +21,8 @@ export OMP_NUM_THREADS=$(lscpu| grep -e '^CPU(s):'| awk '{print $2}')
 echo "Max No. of threads: ${OMP_NUM_THREADS}"
 uname -a
 
+# use sbatch --array=1000-1199 --time=00:10:00 script/submit_ggl_flask-LJF.sh to run 
+
 # FLASK
 time python ggltest.py etc/y1flask_ggl-LJF.yml $SLURM_ARRAY_TASK_ID # the array goes from 0 to 1199
 # metacal

@@ -11,6 +11,8 @@ import flask
 import mcalcat
 import csh, gcl
 from functools import partial
+from os.path import exists, getsize
+
 print = partial(print, flush=True)  # For the impatient people :).
 
 # Configuration file
@@ -26,6 +28,24 @@ print(conf, odir)
 # Create dirs (if needed)
 if not os.path.exists(odir):
     os.makedirs(odir)
+
+def mcm_process(ick, zj, dmask_i, cshmask_j, bins, mcm_dir):
+    """ Return MCM workspace for pos - pos
+    """
+    print(f'calculating mcm - ck{ick} ...', flush=True)
+    path = f"{mcm_dir}/mcm_ggl_ck{ick}_source_z{zj}.fits"
+    w = nmt.NmtWorkspace()
+    if exists(path) and getsize(path) > 0:
+        w.read_from(path)
+        print(f'mcm file already exists', flush=True)
+        return w
+    print(f"mcm file doesn't exist", flush=True)
+    f0 = nmt.NmtField(dmask_i, [dmask_i])
+    f2 = nmt.NmtField(cshmask_j, [cshmask_j, cshmask_j])
+    w.compute_coupling_matrix(f0, f2, bins)
+    w.write_to(path)
+    print(f'mcm file computed and saved at {path}', flush=True)
+    return w
 
 if conf['type'] == 'flask':
     real_id = int(sys.argv[2])   # Realization ID. Starts at 0
@@ -44,7 +64,9 @@ if conf['type'] == 'flask':
     gclmask = gcl.mask_make(gclmask, ick, conf['nside'], odir)
     fsky = gclmask.mean()
     gclfield, nobj = [], []
+    print(f'creating clustering field',flush=True)
     for iz in range(conf['nz_lns']): 
+        print(f'zbin {iz}',flush=True)
         gclcat = f"{conf['flaskdir']}/maskedcats"\
                  + f"/lnscat_z{iz+1}_s{iseed}_ck{ick}.parquet"
         gclcat = gcl.cat_fromflsk(gclcat, conf['nside'])
@@ -70,27 +92,31 @@ if elledges[-1] < 3 * conf['nside']:
     elledges = np.append(elledges, 3 * conf['nside'])
 bins = nmt.NmtBin.from_edges(elledges[:-1], elledges[1:])
 
-w = nmt.NmtWorkspace()
-
 cls = {'ell_eff': bins.get_effective_ells()}
 
 if conf['nside'] <= 2048:
     field_i = gclfield
     field_j = []
+    print(f'creating shear field',flush=True)
     for j in range(conf['nz_src']):
+        print(f'zbin {j}',flush=True)
         cshcat_j = cshcat[j]
         cshmask_j = csh.mask_make(cshcat_j, conf['nside'])
         field_j.append(csh.field_make(cshcat_j, cshmask_j,
                                  save_maps=conf['save_maps'],
                                  maps_prefix=f'{odir}/zbin{j}'))
+
     for i in range(conf['nz_lns']):
         for j in range(conf['nz_src']):
-            w.compute_coupling_matrix(field_i[i], field_j[j], bins)
+            print(f'computing cls z{i+1} z{j+1}', flush=True)
+            #w.compute_coupling_matrix(field_i[i], field_j[j], bins)
+            w = mcm_process(conf['nck'], j+1, gclmask, cshmask_j[j], bins, conf['mcm_dir'])
             cls[f'bpwrwin_{i}{j}'] = w.get_bandpower_windows()
             cls_coup = nmt.compute_coupled_cell(field_i[i], field_j[j])
             if conf['pixwin']:
                 cls_coup /= np.array([hp.pixwin(conf['nside'])] * 2)**2
             cls[f'cl_{i}{j}'] = w.decouple_cell(cls_coup)
+            print('\n', flush=True)
 
 else: 
     for i in range(conf['nz_lns']):

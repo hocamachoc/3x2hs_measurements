@@ -3,13 +3,13 @@ nck: 8
 nz_src: 4
 nside: 2048
 nz_lns: 5
-elledges: "etc/binLogN20Lmin30Lmax3000.txt.old"
+elledges: "/global/homes/l/ljfaga/3x2hs_measurements/etc/binLogN20Lmin30Lmax3000.txt"
 odir: "/global/cscratch1/sd/ljfaga/3x2hs_measurements/flasky1_cls"
 dmap_dir: '/global/cscratch1/sd/ljfaga/flask-desy1/dmap'
 ggmap_dir: '/global/cscratch1/sd/ljfaga/flask-desy1/shear-sn'
 ck_dir: '/global/cscratch1/sd/ljfaga/flask-desy1/cookies'
 mcm_dir: '/global/cscratch1/sd/ljfaga/flask-desy1/mcm'
-flaskdir: '/global/cscratch1/sd/hcamacho/flask_desy1/maskedcats'
+flaskdir: '/global/cscratch1/sd/hcamacho/flask_desy1'
 nonoise: False
 save_maps: False
 pixwin: False
