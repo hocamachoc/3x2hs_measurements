@@ -1,5 +1,14 @@
 #!/bin/bash
+#SBATCH -q regular #debug #regular / debug
+#SBATCH -o %x_%A_%a.out
+#SBATCH -e %x_%A_%a.err
+#SBATCH --nodes=1
+#SBATCH --mail-user=lucas.faga@usp.br
 #SBATCH --mail-type=ALL
+#SBATCH -t 00:30:00 #default debug 00:30:00
+#SBATCH -L SCRATCH
+#SBATCH --constraint=haswell   #Use Haswell nodes
+#SBATCH --account=des
 
 # Load conda env
 # module load miniconda/3
@@ -15,6 +24,6 @@ uname -a
 # FLASK
 # time python cshtest.py etc/y3flask_csh.yml ${SLURM_ARRAY_TASK_ID}
 # metacal
-time python ggltest.py etc/y1mcal_ggl-LJF.yml
+time python ggltest_metacal.py etc/y1mcal_ggl-LJF.yml
 
 conda deactivate
