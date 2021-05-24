@@ -36,7 +36,8 @@ def _get_cl(iz, cat, msk, w, nside, ipgood, wgt=False):
     print(iz, ndens)
     nl = msk.mean() * ndens
     nl = [full(w.wsp.lmax + 1, nl)]
-    return w.decouple_cell(cl)[0], w.decouple_cell(nl)[0]
+    nl[0][0] = 0.0
+    return cl[0], nl[0], w.decouple_cell(cl)[0], w.decouple_cell(nl)[0]
 
 
 def _gc_field(nc, msk, ipgood):
