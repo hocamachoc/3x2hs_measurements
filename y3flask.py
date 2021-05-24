@@ -25,5 +25,5 @@ def add_ipix_poscat(poscat, nside):
     """ Add IP'NSIDE' to a dataframe originally containing {RA, DEC}
     """
     hp = HealPix('ring', nside)
-    poscat[f"IP{nside}"] = hp.eq2pix(poscat.RA.values, poscat.DEC.values)
-    return poscat.drop(['RA', 'DEC'], axis=1)
+    poscat[f"IP{nside}"] = hp.eq2pix(poscat.ra.values, poscat.dec.values)
+    return poscat.drop(['ra', 'dec'], axis=1)

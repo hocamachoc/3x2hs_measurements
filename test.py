@@ -7,7 +7,7 @@ from numpy import loadtxt, savez_compressed
 
 id = int(argv[1])  # starts at 0
 iseed, ick = id // 2 + 1, id % 2 + 1
-nside, nz = 512, 5
+nside, nz = 1024, 5
 print(iseed, ick)
 
 elledges = "etc/binLogN20Lmin30Lmax3000.txt"
