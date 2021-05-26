@@ -29,7 +29,9 @@ def main(argv):
     print(f"Processing catalog: {cat_path}")
     cat = mcalcat_process(cat_path, zbin_path, mask)
 
-    ggmap_pref = f"datay1/{basename(cat_path).split('.')[0]}_nside{nside}_ggmap_zbin"
+    ggmap_pref = (
+        f"datay1/{basename(cat_path).split('.')[0]}_nside{nside}_ggmap_zbin"
+    )
     print(f"Processing ggmaps: {ggmap_pref}")
     ggmap, N = ggmap_process(ggmap_pref, cat)
 
@@ -44,17 +46,34 @@ def main(argv):
 
     print(f"Processing noise TODO")
     noise = [NN / mask.mean() / 4 / pi for NN in N]  # ndens
-    noise = [w.decouple_cell(
-        [full(w.wsp.lmax + 1, mask.mean() * sigma_e / sqrt(2) / n)]) for n in noise]
+    noise = [
+        w.decouple_cell(
+            [full(w.wsp.lmax + 1, mask.mean() * sigma_e / sqrt(2) / n)]
+        )
+        for n in noise
+    ]
 
     print(f"Processing fields")
-    f2 = [NmtField(mask, gg, purify_e=purify_e, purify_b=purify_b)
-          for gg in ggmap]
-    cl = [compute_coupled_cell(
-        f2[zi], f2[zj]) for zi, zj in combinations_with_replacement(range(len(ggmap)), 2)]
+    f2 = [
+        NmtField(mask, gg, purify_e=purify_e, purify_b=purify_b)
+        for gg in ggmap
+    ]
+    cl = [
+        compute_coupled_cell(f2[zi], f2[zj])
+        for zi, zj in combinations_with_replacement(range(len(ggmap)), 2)
+    ]
 
-    cols = list(product([f'{zi+1}{zj+1}' for zi, zj in combinations_with_replacement(
-        range(len(ggmap)), 2)], ['EE', 'EB', 'BE', 'BB']))
+    cols = list(
+        product(
+            [
+                f"{zi+1}{zj+1}"
+                for zi, zj in combinations_with_replacement(
+                    range(len(ggmap)), 2
+                )
+            ],
+            ["EE", "EB", "BE", "BB"],
+        )
+    )
     cols = MultiIndex.from_tuples(cols)
 
     # Save coupled Cls
@@ -64,10 +83,10 @@ def main(argv):
         df = DataFrame(columns=cols)
         i = 0
         for zi, zj in combinations_with_replacement(range(len(ggmap)), 2):
-            df[(f'{zi+1}{zj+1}', 'EE')] = cl[i][0]
-            df[(f'{zi+1}{zj+1}', 'EB')] = cl[i][1]
-            df[(f'{zi+1}{zj+1}', 'BE')] = cl[i][2]
-            df[(f'{zi+1}{zj+1}', 'BB')] = cl[i][3]
+            df[(f"{zi+1}{zj+1}", "EE")] = cl[i][0]
+            df[(f"{zi+1}{zj+1}", "EB")] = cl[i][1]
+            df[(f"{zi+1}{zj+1}", "BE")] = cl[i][2]
+            df[(f"{zi+1}{zj+1}", "BB")] = cl[i][3]
             i += 1
         df.to_csv(ofn)
 
@@ -77,14 +96,14 @@ def main(argv):
     df = DataFrame(index=b.get_effective_ells(), columns=cols)
     i = 0
     for zi, zj in combinations_with_replacement(range(len(ggmap)), 2):
-        df[(f'{zi+1}{zj+1}', 'EB')] = full(df.shape[0], 0)
-        df[(f'{zi+1}{zj+1}', 'BE')] = full(df.shape[0], 0)
+        df[(f"{zi+1}{zj+1}", "EB")] = full(df.shape[0], 0)
+        df[(f"{zi+1}{zj+1}", "BE")] = full(df.shape[0], 0)
         if zi == zj:
             sn = noise[zi]
         else:
             sn = full(df.shape[0], 0)
-        df[(f'{zi+1}{zj+1}', 'EE')] = sn
-        df[(f'{zi+1}{zj+1}', 'BB')] = sn
+        df[(f"{zi+1}{zj+1}", "EE")] = sn
+        df[(f"{zi+1}{zj+1}", "BB")] = sn
         i += 1
     df.to_csv(ofn)
 
@@ -95,10 +114,10 @@ def main(argv):
     df = DataFrame(index=b.get_effective_ells(), columns=cols)
     i = 0
     for zi, zj in combinations_with_replacement(range(len(ggmap)), 2):
-        df[(f'{zi+1}{zj+1}', 'EE')] = cl[i][0]
-        df[(f'{zi+1}{zj+1}', 'EB')] = cl[i][1]
-        df[(f'{zi+1}{zj+1}', 'BE')] = cl[i][2]
-        df[(f'{zi+1}{zj+1}', 'BB')] = cl[i][3]
+        df[(f"{zi+1}{zj+1}", "EE")] = cl[i][0]
+        df[(f"{zi+1}{zj+1}", "EB")] = cl[i][1]
+        df[(f"{zi+1}{zj+1}", "BE")] = cl[i][2]
+        df[(f"{zi+1}{zj+1}", "BB")] = cl[i][3]
         i += 1
     df.to_csv(ofn)
 

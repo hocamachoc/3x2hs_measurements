@@ -10,28 +10,28 @@ import os
 
 
 def cat_fromflsk(gclcat_fn, nside):
-    """ 
+    """
     Returns a galaxy-clustering catalog from FLASK
     """
     print("Reading", gclcat_fn)
     gclcat = pd.read_parquet(gclcat_fn)
     gclcat = _add_ipix(gclcat, nside)
     # Extra information - here all simulated
-    gclcat['w'] = np.ones(gclcat.shape[0])
+    gclcat["w"] = np.ones(gclcat.shape[0])
     return gclcat
 
 
 def _add_ipix(gclcat, nside):
-    """ 
+    """
     Adds IP'NSIDE' to a dataframe originally containing {ra, dec}
     """
-    hp = hu.HealPix('ring', nside)
+    hp = hu.HealPix("ring", nside)
     gclcat[f"ip{nside}"] = hp.eq2pix(gclcat.ra.values, gclcat.dec.values)
-    return gclcat.drop(['ra', 'dec'], axis=1)
+    return gclcat.drop(["ra", "dec"], axis=1)
 
 
 def mask_make(mask_fn, ick, nside, cachedir):
-    """ 
+    """
     Galaxy clustering mask
     """
     path = f"{cachedir}/mask_gcl_ck{ick}.fits"
@@ -57,7 +57,7 @@ def _mask_process(mask_fn, nside):
 
 
 def mcm_make(mask, ick, b, cachedir):
-    """ 
+    """
     Returns MCM workspace for position-position (clustering)
     """
     path = f"{cachedir}/mcmwsp_gcl_ck{ick}.fits"
@@ -71,21 +71,27 @@ def mcm_make(mask, ick, b, cachedir):
     return w
 
 
-def field_make(gclcat, gclmask, nside, save_maps=False, maps_prefix=''):
+def field_make(gclcat, gclmask, nside, save_maps=False, maps_prefix=""):
     """
     Generates NaMASTER galaxy-clustering field
     Also returns the total number of objects
     """
-    ipgood = (gclmask > 0)
-    ncmap = np.bincount(gclcat[f'ip{nside}'], weights=gclcat['w'],
-                        minlength=len(gclmask))
+    ipgood = gclmask > 0
+    ncmap = np.bincount(
+        gclcat[f"ip{nside}"], weights=gclcat["w"], minlength=len(gclmask)
+    )
     dmap = np.full(gclmask.shape[0], 0.0)
-    dmap[ipgood] = ncmap[ipgood] / gclmask[ipgood] \
-        * gclmask[ipgood].sum() / ncmap[ipgood].sum() - 1
+    dmap[ipgood] = (
+        ncmap[ipgood]
+        / gclmask[ipgood]
+        * gclmask[ipgood].sum()
+        / ncmap[ipgood].sum()
+        - 1
+    )
 
     if save_maps:
-        hp.write_map(f'{maps_prefix}_ncmap.fits', ncmap, overwrite=True)
-        hp.write_map(f'{maps_prefix}_dmap.fits', dmap, overwrite=True)
+        hp.write_map(f"{maps_prefix}_ncmap.fits", ncmap, overwrite=True)
+        hp.write_map(f"{maps_prefix}_dmap.fits", dmap, overwrite=True)
 
     return nmt.NmtField(gclmask, [dmap]), ncmap[ipgood].sum()
 
@@ -97,5 +103,3 @@ def pclnoise_make(fsky, nobj, nside):
     ndens = fsky * 4.0 * np.pi / nobj
     nl = fsky * ndens
     return [np.full(3 * nside, nl)]
-
-
