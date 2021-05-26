@@ -1,0 +1,42 @@
+#This script is only used if you did a manual installation of CosmoSIS;
+#i.e. if you did not use the "bootstrap" script and have no "ups" directory
+
+#See the wiki https://bitbucket.org/joezuntz/cosmosis/wiki/Manual%20Install
+#on how to change and use this file
+
+export COSMOSIS_SRC_DIR=${HOME}/3x2hs_measurements/etc/src/cosmosis
+
+# Conda env activated?
+echo $CONDA_DEFAULT_ENV
+
+export COSMOSIS_ALT_COMPILERS=1
+export CXX=x86_64-conda-linux-gnu-g++
+export CC=x86_64-conda-linux-gnu-gcc
+export FC=x86_64-conda-linux-gnu-gfortran
+export LD=x86_64-conda-linux-gnu-ld
+export MPIFC=mpif90
+
+#The gnu science library
+export GSL_INC=${CONDA_PREFIX}/include
+export GSL_LIB=${CONDA_PREFIX}/lib
+
+#The cfitsio FITS library
+export CFITSIO_INC=${CONDA_PREFIX}/include
+export CFITSIO_LIB=${CONDA_PREFIX}/lib
+
+#The fftw3 Fourier transform library
+export FFTW_LIBRARY=${CONDA_PREFIX}/include
+export FFTW_INCLUDE_DIR=${CONDA_PREFIX}/lib
+
+#The lapack linear algebra package
+#On a mac this should just say "-framework Accelerate" or "-framework veclib" if that doesn't work
+export LAPACK_LINK="-L${CONDA_PREFIX}/lib -llapack -lblas"
+
+# You may need to add :${DYLD_LIBRARY_PATH} to the end of this
+export DYLD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${COSMOSIS_SRC_DIR}/cosmosis/datablock/:${COSMOSIS_SRC_DIR}/cosmosis-standard-library/likelihood/:${COSMOSIS_SRC_DIR}/cosmosis-standard-library/likelihood/planck/plc-1.0/lib/:${COSMOSIS_SRC_DIR}/cosmosis-standard-library/likelihood/planck2015/plc-2.0/lib/:${DYLD_LIBRARY_PATH}
+
+#You may need to add :${LD_LIBRARY_PATH} to the end of this
+export LD_LIBRARY_PATH=${CONDA_PREFIX}/lib:${COSMOSIS_SRC_DIR}/cosmosis/datablock/:${COSMOSIS_SRC_DIR}/cosmosis-standard-library/likelihood/planck/plc-1.0/lib/:${COSMOSIS_SRC_DIR}/cosmosis-standard-library/likelihood/planck2015/plc-2.0/lib/:${LD_LIBRARY_PATH}
+
+export PATH=${COSMOSIS_SRC_DIR}/bin:${PATH}
+export PYTHONPATH=${COSMOSIS_SRC_DIR}:${PYTHONPATH}

@@ -1,0 +1,10 @@
+type: 'y1metacal'
+nz_source: 4
+nside: 1024
+mcalcat: "/global/cscratch1/sd/ljfaga/3x2hs_measurements/datay1/mcal-y1a1-combined-riz-unblind-v4-matched.fits"
+zbin: "/global/cscratch1/sd/ljfaga/3x2hs_measurements/datay1/y1_source_redshift_binning_v1.fits"
+nz_lens: 5
+redmagic: "/global/cscratch1/sd/ljfaga/3x2hs_measurements/maps/redmagic_maps_nside1024"
+elledges: "etc/binLogN20Lmin30Lmax3000.txt"
+odir: "/global/cscratch1/sd/ljfaga/3x2hs_measurements/datay1_cls"
+save_maps: True
