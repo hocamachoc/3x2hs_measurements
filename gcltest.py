@@ -77,21 +77,21 @@ cls["bpwrwin"] = w.get_bandpower_windows()
 
 # auto-correlations
 for i in range(conf["nz_lns"]):
-    cls_coup = nmt.compute_coupled_cell(gclfield[i], gclfield[i])
-    nls_coup = gcl.pclnoise_make(fsky, nobj[i], conf["nside"])
+    cls[f"pcl_{i}{i}"] = nmt.compute_coupled_cell(gclfield[i], gclfield[i])
+    cls[f"pnl_{i}"] = gcl.pclnoise_make(fsky, nobj[i], conf["nside"])
     if conf["pixwin"]:
-        cls_coup /= hp.pixwin(conf["nside"]) ** 2
-        nls_coup /= hp.pixwin(conf["nside"]) ** 2
-    cls[f"cl_{i}{i}"] = w.decouple_cell(cls_coup)
-    cls[f"nl_{i}"] = w.decouple_cell(nls_coup)
+        cls[f"pcl_{i}{i}"] /= hp.pixwin(conf["nside"]) ** 2
+        cls[f"pnl_{i}"] /= hp.pixwin(conf["nside"]) ** 2
+    cls[f"cl_{i}{i}"] = w.decouple_cell(cls[f"pcl_{i}{i}"])
+    cls[f"nl_{i}"] = w.decouple_cell(cls[f"pnl_{i}"])
 
 # cross-correlations
 if conf["compute_cross"]:
     for i, j in it.combinations(range(conf["nz_lns"]), 2):
-        cls_coup = nmt.compute_coupled_cell(gclfield[i], gclfield[j])
+        cls[f"pcl_{i}{j}"] = nmt.compute_coupled_cell(gclfield[i], gclfield[j])
         if conf["pixwin"]:
-            cls_coup /= hp.pixwin(conf["nside"]) ** 2
-        cls[f"cl_{i}{i}"] = w.decouple_cell(cls_coup)
+            cls[f"pcl_{i}{j}"] /= hp.pixwin(conf["nside"]) ** 2
+        cls[f"cl_{i}{j}"] = w.decouple_cell(cls[f"pcl_{i}{j}"])
 
 print("Writing", ofn)
 np.savez_compressed(ofn, **cls)
