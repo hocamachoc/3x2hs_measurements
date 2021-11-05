@@ -5,7 +5,7 @@
 module purge
 module load miniconda/3
 # module load python
-source activate 3x2pths
+conda activate 3x2pths
 
 export OMP_PROC_BIND=true
 export OMP_PLACES=threads
