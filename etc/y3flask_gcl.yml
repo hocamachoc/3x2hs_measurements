@@ -1,12 +1,14 @@
 type: 'flask'
 nz_src: 4
 nz_lns: 5
-nck: 8
-nside: 2048
+nck: 2
+nside: 1024
 flaskdir: "/global/cscratch1/sd/hcamacho/flask_desy3"
 odir: "/global/cscratch1/sd/hcamacho/flask_desy3/cls"
+# flaskdir: "/store/hcamacho/flask_desy3"
+# odir: "/store/hcamacho/flask_desy3/cls"
 elledges: "etc/binCDFid.txt"
 compute_cross: False
 nonoise: False
 save_maps: False
-pixwin: False
+pixwin: True

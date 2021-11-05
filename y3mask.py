@@ -1,10 +1,9 @@
-from os.path import (exists, getsize)
-from healpy import (read_map, write_map, npix2nside, ud_grade)
+from os.path import exists, getsize
+from healpy import read_map, write_map, npix2nside, ud_grade
 
 
 def make_y3mask(ick, nside, out_dir, maskdir):
-    """ Returns the Y3 mask
-    """
+    """Returns the Y3 mask"""
     path = f"{out_dir}/mask_gcl_ck{ick}.fits"
     if exists(path) and getsize(path) > 0:
         msk = read_map(path, verbose=False)
@@ -16,8 +15,7 @@ def make_y3mask(ick, nside, out_dir, maskdir):
 
 
 def process_y3mask(y3mask_path, ick, nside):
-    """ Get the original Y3 mask DES product and process it to our desired format
-    """
+    """Get the original Y3 mask DES product and process it to our desired format"""
     msk = read_map(y3mask_path)
     nside_in = npix2nside(len(msk))
     assert nside <= nside_in
