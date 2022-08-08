@@ -1,3 +1,6 @@
+# FLASK E2E pipeline: 
+AIM: Produce, process, measure and remove Lognormal catalogs 
+
 # 3x2hs_measurements
 
 ## Shear
