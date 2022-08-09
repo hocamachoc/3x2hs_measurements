@@ -28,12 +28,12 @@ rm -rf build/cosmosis
 mkdir -p build
 cd build
 # 1.1) cosmosis (develop)
-URL=http://bitbucket.org/joezuntz/cosmosis
+URL=https://bitbucket.org/joezuntz/cosmosis
 git clone ${URL}
 cd cosmosis
 git checkout develop
 # 1.2) cosmosis-standard-library (des-y3)
-URL=http://bitbucket.org/joezuntz/cosmosis-standard-library
+URL=https://bitbucket.org/joezuntz/cosmosis-standard-library
 git clone ${URL}
 cd cosmosis-standard-library
 git checkout des-y3
@@ -46,52 +46,54 @@ git checkout master
 cd ../../..
 
 # 2) Setup the conda env
-# Strategy here: if there's a `3x2pthsy3` module, start fresh, remove it and
+# Strategy here: if there's a `3x2pths` module, start fresh, remove it and
 # create a new one - TODO: There should be a better way...
-# sed -i -e 's/^CosmoloPy/# CosmoloPy/' build/cosmosis/config/requirements.txt
-# sed -i -e 's/^sklearn/scikit-learn/'  build/cosmosis/config/requirements.txt
 conda remove --name 3x2pths --all -y
 conda env create --name 3x2pths --file environment.yml
 source activate 3x2pths
-conda install --force-reinstall -c conda-forge \
-	-f build/cosmosis/config/nersc-conda-req.txt
 pip install -r build/cosmosis/config/nersc-pip-req.txt
 
 # 3) Install cosmosis
-sed -i -e '/export COSMOSIS_SRC_DIR=/cexport COSMOSIS_SRC_DIR=${PWD}/build/cosmosis' etc/setup_cosmosis
+cp -v etc/setup_cosmosis.template etc/setup_cosmosis
+sed -i -e "/export COSMOSIS_SRC_DIR=/cexport COSMOSIS_SRC_DIR=\\${PWD}/build/cosmosis" etc/setup_cosmosis
+sed -i -e "s#export PATH=#export PATH=${PWD}/build/bin:#" etc/setup_cosmosis
+sed -i -e "s#export LD_LIBRARY_PATH=#export LD_LIBRARY_PATH=${PWD}/build/lib:#" etc/setup_cosmosis
 source etc/setup_cosmosis
 cd build/cosmosis
 make -j${NJ}
-cd ..
+cd ../..
+echo "TESTING: ${CONDA_PREFIX}"
 
-# # 4) Install FLASK
-# # 4.1) Healpix CXX
-# VER=3.82
-# URL=https://downloads.sourceforge.net/project/healpix/Healpix_3.82/Healpix_${VER}_2022Jul28.tar.gz
-# wget -c --no-check-certificate $URL
-# tar -xzf *.tar.gz
-# cd Healpix*/
-# ./configure -L --auto=cxx
-# make -j${NJ} ; make clean
-# cp -ru include lib bin data Version ../
-# cd ..
-# rm -rf Healpix_${VER}*.tar.gz Healpix_${VER}*/
-# # 4.2) flask
-# URLREPO=https://github.com/ucl-cosmoparticles/flask.git
-# git clone $URLREPO
-# cd flask/src
-# sed -i -e '/HEALDIR  =  \/home\/jayesh\/Documents\/Euclid\/Software\/Healpix_3.50/cHEALDIR = ${PWD}/../..' Makefile
-# sed -i -e '/CXXHEAL  = -I$(HEALDIR)\/src\/cxx\/generic_gcc\/include/cCXXHEAL = -I$(HEALDIR)/include/healpix_cxx' Makefile
-# sed -i -e '/LDHEAL   = -L$(HEALDIR)\/src\/cxx\/generic_gcc\/lib/cLDHEAL = -L${HEALDIR}/lib' Makefile
-# sed -i -e '/#CXXFITS  = -I\/mnt\/c\/User\/arthu\/Work\/lib\/cfitsio\//cCXXFITS = -I${CONDA_PREFIX}/include' Makefile
-# sed -i -e '/#LDFITS   = -L\/mnt\/c\/User\/arthu\/Work\/lib\/cfitsio\//cLDFITS = -L${CONDA_PREFIX}/lib' Makefile
-# sed -i -e '/#CXXGSL   = -I\/path\/to\/gsl\/headers\/folder/cCXXGSL = -I${CONDA_PREFIX}/include' Makefile
-# sed -i -e '/#LDGSL    = -L\/path\/to\/gsl\/libraries\/folder/cLDGSL = -L${CONDA_PREFIX}/lib' Makefile
-# make -j${NJ}
-# cd ..
-# cp -ru bin ../
-# cd ..
-# rm -rf flask
+# 4) Install FLASK
+cd build
+# 4.1) Healpix CXX
+VER=3.82
+URL=https://downloads.sourceforge.net/project/healpix/Healpix_3.82/Healpix_${VER}_2022Jul28.tar.gz
+wget -c --no-check-certificate $URL
+tar -xzf *.tar.gz
+cd Healpix*/
+./configure -L --auto=cxx
+make -j${NJ} ; make clean
+cp -ru include lib bin data Version ../
+cd ..
+rm -rf Healpix_${VER}*.tar.gz Healpix_${VER}*/
+# 4.2) flask
+URLREPO=https://github.com/ucl-cosmoparticles/flask.git
+git clone $URLREPO
+cd flask/src
+sed -i -e "/HEALDIR  =  \/home\/jayesh\/Documents\/Euclid\/Software\/Healpix_3.50/cHEALDIR = \\${PWD}/../.." Makefile
+sed -i -e '/CXXHEAL  = -I$(HEALDIR)\/src\/cxx\/generic_gcc\/include/cCXXHEAL = -I$(HEALDIR)/include/healpix_cxx' Makefile
+sed -i -e '/LDHEAL   = -L$(HEALDIR)\/src\/cxx\/generic_gcc\/lib/cLDHEAL = -L${HEALDIR}/lib' Makefile
+sed -i -e "/#CXXFITS  = -I\/mnt\/c\/User\/arthu\/Work\/lib\/cfitsio\//cCXXFITS = -I\\${CONDA_PREFIX}/include" Makefile
+sed -i -e "/#LDFITS   = -L\/mnt\/c\/User\/arthu\/Work\/lib\/cfitsio\//cLDFITS = -L\\${CONDA_PREFIX}/lib" Makefile
+sed -i -e "/#CXXGSL   = -I\/path\/to\/gsl\/headers\/folder/cCXXGSL = -I\\${CONDA_PREFIX}/include" Makefile
+sed -i -e "/#LDGSL    = -L\/path\/to\/gsl\/libraries\/folder/cLDGSL = -L\\${CONDA_PREFIX}/lib" Makefile
+make -j${NJ}
+cd ..
+cp -ru bin ../
+cd ..
+rm -rf flask
+cd ..
 
 # 4) Clean up
 conda deactivate
