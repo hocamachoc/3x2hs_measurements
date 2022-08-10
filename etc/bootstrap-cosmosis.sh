@@ -27,8 +27,8 @@ BASE=${PWD}
 # 1) Setup the conda env
 # Strategy here: if there's a `3x2pths` module, start fresh, remove it and
 # create a new one - TODO: There should be a better way...
-# conda remove --name 3x2pths --all -y
-# conda env create --name 3x2pths --file environment.yml
+conda remove --name 3x2pths --all -y
+conda env create --name 3x2pths --file environment.yml
 source activate 3x2pths
 
 # 2) Clone the CosmoSIS repos
