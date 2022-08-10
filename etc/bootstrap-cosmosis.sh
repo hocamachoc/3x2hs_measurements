@@ -22,10 +22,12 @@ case ${1} in
 	;;
 esac
 
-# 1) Clone the CosmoSIS repos
-# You will need to pass the DES password for the cosmosis-des-library
-rm -rf build/cosmosis
+# Our local buildings go here
 mkdir -p build
+
+# 1) Clone the CosmoSIS repos
+rm -rf build/cosmosis
+# You will need to pass the DES password for the cosmosis-des-library
 cd build
 # 1.1) cosmosis (develop)
 URL=https://bitbucket.org/joezuntz/cosmosis
@@ -62,7 +64,6 @@ source etc/setup_cosmosis
 cd build/cosmosis
 make -j${NJ}
 cd ../..
-echo "TESTING: ${CONDA_PREFIX}"
 
 # 4) Install FLASK
 cd build
@@ -72,9 +73,10 @@ URL=https://downloads.sourceforge.net/project/healpix/Healpix_3.82/Healpix_${VER
 wget -c --no-check-certificate $URL
 tar -xzf *.tar.gz
 cd Healpix*/
-./configure -L --auto=cxx
-make -j${NJ} ; make clean
-cp -ru include lib bin data Version ../
+FITSDIR=${CONDA_PREFIX}/lib FITSINC=${CONDA_PREFIX}/include \
+	./configure -L --auto=cxx
+make -j${NJ}
+cp -r include lib bin data Version ../
 cd ..
 rm -rf Healpix_${VER}*.tar.gz Healpix_${VER}*/
 # 4.2) flask
