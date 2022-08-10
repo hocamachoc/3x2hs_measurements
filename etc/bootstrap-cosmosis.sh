@@ -22,13 +22,19 @@ case ${1} in
 	;;
 esac
 
-# Our local buildings go here
-mkdir -p build
+BASE=${PWD}
 
-# 1) Clone the CosmoSIS repos
-rm -rf build/cosmosis
+# 1) Setup the conda env
+# Strategy here: if there's a `3x2pths` module, start fresh, remove it and
+# create a new one - TODO: There should be a better way...
+# conda remove --name 3x2pths --all -y
+# conda env create --name 3x2pths --file environment.yml
+source activate 3x2pths
+
+# 2) Clone the CosmoSIS repos
+rm -rf ${CONDA_PREFIX}/cosmosis
 # You will need to pass the DES password for the cosmosis-des-library
-cd build
+cd ${CONDA_PREFIX}
 # 1.1) cosmosis (develop)
 URL=https://bitbucket.org/joezuntz/cosmosis
 git clone ${URL}
@@ -45,28 +51,23 @@ URL=git@bitbucket.org:joezuntz/cosmosis-des-library.git
 git clone ${URL}
 cd cosmosis-des-library
 git checkout master
-cd ../../..
-
-# 2) Setup the conda env
-# Strategy here: if there's a `3x2pths` module, start fresh, remove it and
-# create a new one - TODO: There should be a better way...
-conda remove --name 3x2pths --all -y
-conda env create --name 3x2pths --file environment.yml
-source activate 3x2pths
-pip install -r build/cosmosis/config/nersc-pip-req.txt
+cd ..
+# Cosmosis requirements
+pip install -r ${CONDA_PREFIX}/cosmosis/config/nersc-pip-req.txt
 
 # 3) Install cosmosis
-cp -v etc/setup_cosmosis.template etc/setup_cosmosis
-sed -i -e "/export COSMOSIS_SRC_DIR=/cexport COSMOSIS_SRC_DIR=\\${PWD}/build/cosmosis" etc/setup_cosmosis
-sed -i -e "s#export PATH=#export PATH=${PWD}/build/bin:#" etc/setup_cosmosis
-sed -i -e "s#export LD_LIBRARY_PATH=#export LD_LIBRARY_PATH=${PWD}/build/lib:#" etc/setup_cosmosis
-source etc/setup_cosmosis
-cd build/cosmosis
+SETUPCOSMOSIS=${CONDA_PREFIX}/etc/setup_cosmosis
+cp -v ${BASE}/etc/setup_cosmosis.template ${SETUPCOSMOSIS}
+sed -i -e "/export COSMOSIS_SRC_DIR=/cexport COSMOSIS_SRC_DIR=\\${CONDA_PREFIX}/cosmosis" ${SETUPCOSMOSIS}
+# sed -i -e "s#export PATH=#export PATH=${PWD}/build/bin:#" ${SETUPCOSMOSIS}
+# sed -i -e "s#export LD_LIBRARY_PATH=#export LD_LIBRARY_PATH=${PWD}/build/lib:#" ${SETUPCOSMOSIS}
+source ${SETUPCOSMOSIS}
+cd ${CONDA_PREFIX}/cosmosis
 make -j${NJ}
-cd ../..
 
 # 4) Install FLASK
-cd build
+TMP=$(mktemp --tmpdir=${CONDA_PREFIX}/tmp -d)
+cd ${TMP}
 # 4.1) Healpix CXX
 VER=3.82
 URL=https://downloads.sourceforge.net/project/healpix/Healpix_3.82/Healpix_${VER}_2022Jul28.tar.gz
@@ -76,26 +77,24 @@ cd Healpix*/
 FITSDIR=${CONDA_PREFIX}/lib FITSINC=${CONDA_PREFIX}/include \
 	./configure -L --auto=cxx
 make -j${NJ}
-cp -r include lib bin data Version ../
-cd ..
-rm -rf Healpix_${VER}*.tar.gz Healpix_${VER}*/
+cp -ur include lib bin data Version ${CONDA_PREFIX}/
 # 4.2) flask
+cd ${TMP}
 URLREPO=https://github.com/ucl-cosmoparticles/flask.git
 git clone $URLREPO
 cd flask/src
-sed -i -e "/HEALDIR  =  \/home\/jayesh\/Documents\/Euclid\/Software\/Healpix_3.50/cHEALDIR = \\${PWD}/../.." Makefile
+sed -i -e "/HEALDIR  =  \/home\/jayesh\/Documents\/Euclid\/Software\/Healpix_3.50/cHEALDIR = \\${CONDA_PREFIX}" Makefile
 sed -i -e '/CXXHEAL  = -I$(HEALDIR)\/src\/cxx\/generic_gcc\/include/cCXXHEAL = -I$(HEALDIR)/include/healpix_cxx' Makefile
-sed -i -e '/LDHEAL   = -L$(HEALDIR)\/src\/cxx\/generic_gcc\/lib/cLDHEAL = -L${HEALDIR}/lib' Makefile
+sed -i -e '/LDHEAL   = -L$(HEALDIR)\/src\/cxx\/generic_gcc\/lib/cLDHEAL = -L$(HEALDIR)/lib' Makefile
 sed -i -e "/#CXXFITS  = -I\/mnt\/c\/User\/arthu\/Work\/lib\/cfitsio\//cCXXFITS = -I\\${CONDA_PREFIX}/include" Makefile
 sed -i -e "/#LDFITS   = -L\/mnt\/c\/User\/arthu\/Work\/lib\/cfitsio\//cLDFITS = -L\\${CONDA_PREFIX}/lib" Makefile
 sed -i -e "/#CXXGSL   = -I\/path\/to\/gsl\/headers\/folder/cCXXGSL = -I\\${CONDA_PREFIX}/include" Makefile
 sed -i -e "/#LDGSL    = -L\/path\/to\/gsl\/libraries\/folder/cLDGSL = -L\\${CONDA_PREFIX}/lib" Makefile
 make -j${NJ}
 cd ..
-cp -ru bin ../
-cd ..
-rm -rf flask
-cd ..
+cp -ru bin ${CONDA_PREFIX}/
+# Finalize
+rm -rf ${TMP}
 
 # 4) Clean up
 conda deactivate
