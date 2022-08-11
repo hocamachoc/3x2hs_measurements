@@ -23,6 +23,7 @@ case ${1} in
 esac
 
 BASE=${PWD}
+TMP=$(mktemp -d)
 
 # 1) Setup the conda env
 # Strategy here: if there's a `3x2pths` module, start fresh, remove it and
@@ -52,21 +53,17 @@ git clone ${URL}
 cd cosmosis-des-library
 git checkout master
 cd ..
-# Cosmosis requirements
-pip install -r ${CONDA_PREFIX}/cosmosis/config/nersc-pip-req.txt
 
 # 3) Install cosmosis
 SETUPCOSMOSIS=${CONDA_PREFIX}/etc/setup_cosmosis
 cp -v ${BASE}/etc/setup_cosmosis.template ${SETUPCOSMOSIS}
 sed -i -e "/export COSMOSIS_SRC_DIR=/cexport COSMOSIS_SRC_DIR=\\${CONDA_PREFIX}/cosmosis" ${SETUPCOSMOSIS}
-# sed -i -e "s#export PATH=#export PATH=${PWD}/build/bin:#" ${SETUPCOSMOSIS}
-# sed -i -e "s#export LD_LIBRARY_PATH=#export LD_LIBRARY_PATH=${PWD}/build/lib:#" ${SETUPCOSMOSIS}
 source ${SETUPCOSMOSIS}
 cd ${CONDA_PREFIX}/cosmosis
+pip install -r ${CONDA_PREFIX}/cosmosis/config/nersc-pip-req.txt
 make -j${NJ}
 
 # 4) Install FLASK
-TMP=$(mktemp --tmpdir=${CONDA_PREFIX}/tmp -d)
 cd ${TMP}
 # 4.1) Healpix CXX
 VER=3.82
@@ -93,8 +90,7 @@ sed -i -e "/#LDGSL    = -L\/path\/to\/gsl\/libraries\/folder/cLDGSL = -L\\${COND
 make -j${NJ}
 cd ..
 cp -ru bin ${CONDA_PREFIX}/
-# Finalize
-rm -rf ${TMP}
 
 # 4) Clean up
+rm -rf ${TMP}
 conda deactivate
