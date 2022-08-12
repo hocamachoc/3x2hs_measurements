@@ -1,15 +1,18 @@
 #!/bin/bash
 #
 SEED=${1}
+mkdir -p ${SCRATCH}/tmp
 TMP=$(mktemp --tmpdir=${SCRATCH}/tmp -d)
 DIROUT=${TMP}/seed${SEED}
 
+module load python
 conda activate 3x2pths
 source ${CONDA_PREFIX}/etc/setup_cosmosis
 
 mkdir -p ${DIROUT}
 
 # 1) Cosmosis -> fiducial Cls
+mkdir -p Cl_flaskv2p0_nolimber_emu_Nsource4
 cd ${PWD}
 export SCALE_CUT_DIR=${PWD}
 export SCALE_CUTS="scales_all.ini"
@@ -49,6 +52,24 @@ ${CONDA_PREFIX}/bin/flask ${DIROUT}/run.config" >> ${DIROUT}/submit_job${SEED}
 # 4) Run Flask
 echo "* Output run dir: ${DIROUT}"
 sbatch ${DIROUT}/submit_job${SEED}
+
+# # 5) Run Measurements
+# cp -r cookies ${TMP} 
+# cp ../etc/binCDFid.txt ${TMP}
+#
+# echo "type: 'flask'
+# nz_src: 4
+# nz_lns: 5
+# nck: 2
+# nside: 2048
+# flaskdir: '${TMP}'
+# odir: '${TMP}/cls'
+# elledges: '${TMP}/binCDFid.txt'
+# neff: [1.476, 1.479, 1.484, 1.461]
+# sigma_e: [0.247, 0.266, 0.263, 0.314]
+# nonoise: False
+# save_maps: False
+# pixwin: True" >> ${DIROUT}
 
 # Clean up
 # rm -rf ${TMP}

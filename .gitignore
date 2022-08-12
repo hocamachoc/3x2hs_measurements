@@ -9,4 +9,4 @@ etc/.*
 etc/src/
 log
 slurm-*.out
-*.fits*
+# *.fits*
