@@ -35,6 +35,7 @@ if conf["type"] == "flask":
     gclmask = f"{conf['flaskdir']}/cookies/ck{ick}.fits.gz"
     gclmask = gcl.mask_make(gclmask, ick, conf["nside"], odir)
     fsky = gclmask.mean()
+    print(fsky)
     gclfield, nobj = [], []
     for iz in range(conf["nz_lns"]):
         gclcat = (
@@ -80,8 +81,8 @@ for i in range(conf["nz_lns"]):
     cls[f"pcl_{i}{i}"] = nmt.compute_coupled_cell(gclfield[i], gclfield[i])
     cls[f"pnl_{i}"] = gcl.pclnoise_make(fsky, nobj[i], conf["nside"])
     if conf["pixwin"]:
-        cls[f"pcl_{i}{i}"] /= hp.pixwin(conf["nside"]) ** 2
-        cls[f"pnl_{i}"] /= hp.pixwin(conf["nside"]) ** 2
+        cls[f"pcl_{i}{i}"] /= np.array([hp.pixwin(conf["nside"])]) ** 2
+        cls[f"pnl_{i}"] /= np.array([hp.pixwin(conf["nside"])]) ** 2
     cls[f"cl_{i}{i}"] = w.decouple_cell(cls[f"pcl_{i}{i}"])
     cls[f"nl_{i}"] = w.decouple_cell(cls[f"pnl_{i}"])
 
@@ -90,7 +91,7 @@ if conf["compute_cross"]:
     for i, j in it.combinations(range(conf["nz_lns"]), 2):
         cls[f"pcl_{i}{j}"] = nmt.compute_coupled_cell(gclfield[i], gclfield[j])
         if conf["pixwin"]:
-            cls[f"pcl_{i}{j}"] /= hp.pixwin(conf["nside"]) ** 2
+            cls[f"pcl_{i}{j}"] /= np.array([hp.pixwin(conf["nside"])]) ** 2
         cls[f"cl_{i}{j}"] = w.decouple_cell(cls[f"pcl_{i}{j}"])
 
 print("Writing", ofn)

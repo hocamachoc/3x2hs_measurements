@@ -26,15 +26,13 @@ dependencies:
   - lapack
   - blas
   - pip:
-#    - -e git+https://github.com/esheldon/healpix_util.git#egg=healpix_util
-    - git+https://github.com/esheldon/healpix_util.git
+    # - camb
     - git+https://github.com/joezuntz/2point.git
-    # https://bitbucket.org/joezuntz/cosmosis/src/2d29d33e64da2d4b0368e19cb9f9a5af559f0294/bin/cosmosis_main.py?at=master#lines-11
+    # https://bitbucket.org/joezuntz/cosmosis/src/d9c1ae5f621634a1b2db19024187d4bf56a520f0/bin/cosmosis_main.py#lines-12
     - configparser
     - future
-# More utils    
+    # More utils
+    - git+https://github.com/esheldon/healpix_util.git
+    - chainconsumer
     - getdist
-    - camb
-  - pyccl
   - ipykernel
-

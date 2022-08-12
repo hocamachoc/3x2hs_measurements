@@ -9,6 +9,7 @@ import pymaster as nmt
 
 def cat_fromflsk(cshcat_fn, nside, nonoise=False):
     """Load FLASK cosmic shear catalog and adds additional info"""
+    print("Reading", cshcat_fn)
     cshcat = pd.read_parquet(cshcat_fn)
 
     # Shear
@@ -101,7 +102,7 @@ def pclnoise_make(cshcat, cshmask):
     Rbias_mean = (cshcat["R"] * cshcat["w"]).sum() / cshcat["w"].sum()
 
     pix_area = 4.0 * np.pi / npix
-    pcl_noise = np.full(3 * nside, pix_area * w2varg_pixmean / Rbias_mean ** 2)
+    pcl_noise = np.full(3 * nside, pix_area * w2varg_pixmean / Rbias_mean**2)
     return np.array(
         [
             pcl_noise,

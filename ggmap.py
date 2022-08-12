@@ -8,7 +8,8 @@ from os.path import exists
 def ggmap_process(ggmap_pref, cat, nside=4096):
     path = [f"{ggmap_pref}{ii+1}.fits" for ii in range(len(cat))]
     #   with Pool(processes=len(cat)) as pool:
-    #       ggmap = pool.starmap(ggmap_process_single, [(path[ii], cat[ii], nside) for ii in range(len(cat))])
+    #       ggmap = pool.starmap(ggmap_process_single, [(path[ii], cat[ii],
+    #       nside) for ii in range(len(cat))])
     ggmap, N = [], []
     for ii in range(len(cat)):
         gg, n = ggmap_process_single(path[ii], cat[ii], nside)
