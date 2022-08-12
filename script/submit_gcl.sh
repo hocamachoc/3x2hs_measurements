@@ -3,8 +3,8 @@
 
 # Load conda env
 module purge
-module load miniconda/3
-# module load python
+# module load miniconda/3
+module load python
 conda activate 3x2pths
 
 export OMP_PROC_BIND=true

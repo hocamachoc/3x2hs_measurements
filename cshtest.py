@@ -1,13 +1,9 @@
 import sys
 import os
 import yaml
-import itertools as it
-import multiprocessing as mp
 import numpy as np
 import healpy as hp
-import pandas as pd
 import pymaster as nmt
-import flask
 import mcalcat
 import csh
 from functools import partial
@@ -81,12 +77,19 @@ for i in range(conf["nz_src"]):
         cls_coup = nmt.compute_coupled_cell(field_i, field_j)
         if conf["pixwin"]:
             cls_coup /= np.array([hp.pixwin(conf["nside"])] * 4) ** 2
+        cls[f"pcl_{i}{j}"] = cls_coup
         cls[f"cl_{i}{j}"] = w.decouple_cell(cls_coup)
         if i == j:
             nls_coup = csh.pclnoise_make(cshcat_i, cshmask_i)
             if conf["pixwin"]:
                 nls_coup /= np.array([hp.pixwin(conf["nside"])] * 4) ** 2
+            cls[f"pnl_{i}"] = nls_coup
             cls[f"nl_{i}"] = w.decouple_cell(nls_coup)
+        # Saving the MCM
+        if real_id == 0:
+            w.write_to(
+                ofn.replace("cls_", "mcmwsp_").replace(".npz", f"_{i}{j}.fits")
+            )
 
 print("Writing", ofn)
 np.savez_compressed(ofn, **cls)

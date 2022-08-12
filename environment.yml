@@ -27,7 +27,7 @@ dependencies:
   - blas
   - ipykernel
   - pip:
-#    - -e git+https://github.com/esheldon/healpix_util.git#egg=healpix_util
+  #    - -e git+https://github.com/esheldon/healpix_util.git#egg=healpix_util
     - git+https://github.com/esheldon/healpix_util.git
     - git+https://github.com/joezuntz/2point.git
     # https://bitbucket.org/joezuntz/cosmosis/src/2d29d33e64da2d4b0368e19cb9f9a5af559f0294/bin/cosmosis_main.py?at=master#lines-11

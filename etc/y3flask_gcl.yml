@@ -3,8 +3,12 @@ nz_src: 4
 nz_lns: 5
 nck: 2
 nside: 1024
-flaskdir: "/global/cscratch1/sd/hcamacho/flask_desy3"
-odir: "/global/cscratch1/sd/hcamacho/flask_desy3/cls"
+# flaskdir: "/global/cscratch1/sd/faoli/flask_desy3"
+# maskedcatsdir: "/global/cscratch1/sd/faoli/flask_desy3/maskedcats"
+# odir: "/global/cscratch1/sd/hcamacho/flask_desy3_testing/cls"
+flaskdir: "/mnt/scratch/users/hcamacho/flask_desy3"
+maskedcatsdir: "/mnt/scratch/users/hcamacho/flask_desy3/maskedcats"
+odir: "/mnt/scratch/users/hcamacho/flask_desy3_testing/cls"
 # flaskdir: "/store/hcamacho/flask_desy3"
 # odir: "/store/hcamacho/flask_desy3/cls"
 elledges: "etc/binCDFid.txt"

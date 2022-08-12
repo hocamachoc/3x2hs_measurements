@@ -4,6 +4,7 @@ nz_lns: 5
 nck: 2
 nside: 2048
 flaskdir: "/global/cscratch1/sd/faoli/flask_desy3"
+maskedcatsdir: "/global/cscratch1/sd/faoli/flask_desy3/maskedcats"
 odir: "/global/cscratch1/sd/faoli/flask_desy3/cls"
 # flaskdir: "/store/hcamacho/flask_desy3"
 # odir: "/store/hcamacho/flask_desy3/cls"

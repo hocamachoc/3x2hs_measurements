@@ -200,8 +200,8 @@ def ncmap_sample_positions(nc_map, ip_good, nside, fgoodmap, nside_up=4):
     ipix_nest = [
         rd.sample(
             range(
-                ip_good_nest[i] * 4 ** nside_up,
-                (ip_good_nest[i] + 1) * 4 ** nside_up,
+                ip_good_nest[i] * 4**nside_up,
+                (ip_good_nest[i] + 1) * 4**nside_up,
             ),
             nc_map[i],
         )
@@ -209,7 +209,7 @@ def ncmap_sample_positions(nc_map, ip_good, nside, fgoodmap, nside_up=4):
     ]
     ipix_nest = [ip for sub in ipix_nest for ip in sub]
 
-    hpix = hu.HealPix("nest", nside * 2 ** nside_up)
+    hpix = hu.HealPix("nest", nside * 2**nside_up)
     ra, dec = hpix.pix2eq(ipix_nest)
     return ra, dec
 
@@ -296,7 +296,7 @@ if __name__ == "__main__":
     with open(o.conf[0], "rt") as f:
         conf = yaml.safe_load(f)
 
-    outdir = f"{conf['flaskdir']}/maskedcats"
+        outdir = f"{conf['maskedcatsdir']}"
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
@@ -316,7 +316,8 @@ if __name__ == "__main__":
 
     elif o.des_release == "y3":
         kggpref = f"kappa-gamma-f10"
-        process_lenscat(o.iseed, conf["flaskdir"], outdir)
+        if conf["dolens"]:
+            process_lenscat(o.iseed, conf["flaskdir"], outdir)
 
     else:
         raise NotImplementedError(

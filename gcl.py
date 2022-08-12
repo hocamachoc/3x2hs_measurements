@@ -102,4 +102,4 @@ def pclnoise_make(fsky, nobj, nside):
     """
     ndens = fsky * 4.0 * np.pi / nobj
     nl = fsky * ndens
-    return [np.full(3 * nside, nl)]
+    return np.array([np.full(3 * nside, nl)])

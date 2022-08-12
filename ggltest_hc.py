@@ -1,15 +1,11 @@
 import sys
 import os
 import yaml
-import itertools as it
-import multiprocessing as mp
 import numpy as np
 import healpy as hp
-import pandas as pd
 import pymaster as nmt
-import flask
-import mcalcat
-import csh, gcl
+import csh
+import gcl
 from functools import partial
 
 print = partial(print, flush=True)  # For the impatient people :).
@@ -102,6 +98,7 @@ for i in range(conf["nz_lns"]):
         cls_coup = nmt.compute_coupled_cell(field_i, field_j)
         if conf["pixwin"]:
             cls_coup /= np.array([hp.pixwin(conf["nside"])] * 2) ** 2
+        cls[f"pcl_{i}{j}"] = cls_coup
         cls[f"cl_{i}{j}"] = w.decouple_cell(cls_coup)
 
 print("Writing", ofn)
