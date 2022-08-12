@@ -71,16 +71,17 @@ URL=https://downloads.sourceforge.net/project/healpix/Healpix_3.82/Healpix_${VER
 wget -c --no-check-certificate $URL
 tar -xzf *.tar.gz
 cd Healpix*/
-FITSDIR=${CONDA_PREFIX}/lib FITSINC=${CONDA_PREFIX}/include \
-	./configure -L --auto=cxx
+FITSDIR=${CONDA_PREFIX}/lib FITSINC=${CONDA_PREFIX}/include ./configure -L --auto=cxx
 make -j${NJ}
 cp -ur include lib bin data Version ${CONDA_PREFIX}/
+rm /tmp/Healpix_autolist.txt
 # 4.2) flask
 cd ${TMP}
-URLREPO=https://github.com/ucl-cosmoparticles/flask.git
+# URLREPO=https://github.com/ucl-cosmoparticles/flask.git # Does not read CATALOG_COLS(?)
+URLREPO=https://github.com/hsxavier/flask.git
 git clone $URLREPO
 cd flask/src
-sed -i -e "/HEALDIR  =  \/home\/jayesh\/Documents\/Euclid\/Software\/Healpix_3.50/cHEALDIR = \\${CONDA_PREFIX}" Makefile
+sed -i -e "/HEALDIR  = \/home\/skems\/prog\/Healpix_3.60_2019Dec18\/Healpix_3.60/cHEALDIR = \\${CONDA_PREFIX}" Makefile
 sed -i -e '/CXXHEAL  = -I$(HEALDIR)\/src\/cxx\/generic_gcc\/include/cCXXHEAL = -I$(HEALDIR)/include/healpix_cxx' Makefile
 sed -i -e '/LDHEAL   = -L$(HEALDIR)\/src\/cxx\/generic_gcc\/lib/cLDHEAL = -L$(HEALDIR)/lib' Makefile
 sed -i -e "/#CXXFITS  = -I\/mnt\/c\/User\/arthu\/Work\/lib\/cfitsio\//cCXXFITS = -I\\${CONDA_PREFIX}/include" Makefile
