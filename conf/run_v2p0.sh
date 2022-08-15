@@ -1,15 +1,12 @@
 #!/bin/bash
 #
-SEED=${1}
+SEEDS=${1}
 mkdir -p ${SCRATCH}/tmp
 TMP=$(mktemp --tmpdir=${SCRATCH}/tmp -d)
-DIROUT=${TMP}/4096/seed${SEED}
 
 module load python
 conda activate 3x2pths
 source ${CONDA_PREFIX}/etc/setup_cosmosis
-
-mkdir -p ${DIROUT}
 
 # 1) Cosmosis -> fiducial Cls
 mkdir -p Cl_flaskv2p0_nolimber_emu_Nsource4
@@ -19,15 +16,7 @@ export SCALE_CUTS="scales_all.ini"
 export DATAFILE="sim_3x2_fiducial_nla.fits"
 cosmosis ${PWD}/params.ini
 
-# 2) Flask config file
-echo "DIST:      LOGNORMAL
-RNDSEED:   ${SEED}
-POISSON:   1" >> ${DIROUT}/tmpfile
-cat ${DIROUT}/tmpfile $PWD/template_v2p0.config > ${DIROUT}/run.config
-rm ${DIROUT}/tmpfile
-sed -i 's|output|'$DIROUT'|g' ${DIROUT}/run.config
-
-# 3) Measurements config
+# 2) Measurements config
 cp -r cookies ${TMP} 
 cp ../etc/binCDFid.txt ${TMP}
 
@@ -48,17 +37,20 @@ nonoise: False
 save_maps: False
 pixwin: True" >> ${TMP}/flask.yml
 
-# 4) Flask + measurements submission file
-echo "#!/bin/bash
+# 3) Flask + measurements submission file
+mkdir -p ${TMP}/4096
+cat <<EOF > ${TMP}/4096/submit_job${SEEDS}
+#!/bin/bash
 #SBATCH -q debug #debug or regular
 #SBATCH --nodes=1
 #SBATCH -t 00:29:50
-#SBATCH -o ${DIROUT}/outputfile
-#SBATCH -e ${DIROUT}/errorfile
+#SBATCH -o ${TMP}/4096/outputfile-${SEEDS}_%a
+#SBATCH -e ${TMP}/4096/errorfile-${SEEDS}_%a
 #SBATCH -L SCRATCH
 #SBATCH --constraint=haswell
 # #SBATCH --account=des
-#SBATCH -J seed${SEED}
+#SBATCH -J seed${SEEDS}
+#SBATCH --array=${SEEDS}
 #SBATCH --mail-type=ALL
 
 module load python
@@ -67,19 +59,31 @@ source ${CONDA_PREFIX}/etc/setup_cosmosis
 export PMI_NO_FORK=1
 export PMI_NO_PREINITIALIZE=1
 
-cd ${PWD}
-${CONDA_PREFIX}/bin/flask ${DIROUT}/run.config
+SEED=\${SLURM_ARRAY_TASK_ID}
+DIROUT=${TMP}/4096/seed\${SEED}
+mkdir -p \${DIROUT}
 
-time python3 ../flask.py ${TMP}/flask.yml --iseed ${SEED} --des_release y3 --processes 10 	# $(grep -c processor /proc/cpuinfo)
+echo "DIST:      LOGNORMAL
+RNDSEED:   \${SEED}
+POISSON:   1" >> \${DIROUT}/tmpfile
+cat \${DIROUT}/tmpfile ${PWD}/template_v2p0.config > \${DIROUT}/run.config
+rm \${DIROUT}/tmpfile
+sed -i 's|output|'\$DIROUT'|g' \${DIROUT}/run.config
+
+cd ${PWD}
+${CONDA_PREFIX}/bin/flask \${DIROUT}/run.config
+
+time python3 ../flask.py ${TMP}/flask.yml --iseed \${SEED} --des_release y3 --processes 10 	# $(grep -c processor /proc/cpuinfo)
 for CK in 1 2 ; do
-	time python3 ../cshtest.py ${TMP}/flask.yml ${SEED} \${CK}
-	time python3 ../ggltest.py ${TMP}/flask.yml ${SEED} \${CK} 
-	time python3 ../gcltest.py ${TMP}/flask.yml ${SEED} \${CK}
-done" >> ${DIROUT}/submit_job${SEED}
+	time python3 ../cshtest.py ${TMP}/flask.yml \${SEED} \${CK}
+	time python3 ../ggltest.py ${TMP}/flask.yml \${SEED} \${CK} 
+	time python3 ../gcltest.py ${TMP}/flask.yml \${SEED} \${CK}
+done
+EOF
 
 # 4) Run Flask + Measurements
-echo "* Output run dir: ${DIROUT}"
-sbatch ${DIROUT}/submit_job${SEED}
+echo "* Output run dir: ${TMP}"
+sbatch ${TMP}/4096/submit_job${SEEDS}
 
 # Clean up
 # rm -rf ${TMP}
