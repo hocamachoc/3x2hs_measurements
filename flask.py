@@ -112,8 +112,8 @@ def process_one_kggmap(
     Processes a single FLASK seed
     """
     fgoodmap_fn = f"{flaskdir}/cookies/ck{ick+1}.fits.gz"
-    map_fn = f"{flaskdir}/4096/seed{iseed+1}/{kggpref}z{iz+1}.fits"
-    cat_fn = f"{outdir}/srccat_z{iz+1}_s{iseed+1}_ck{ick+1}.parquet"
+    map_fn = f"{flaskdir}/4096/seed{iseed}/{kggpref}z{iz+1}.fits"
+    cat_fn = f"{outdir}/srccat_z{iz+1}_s{iseed}_ck{ick+1}.parquet"
 
     cshcat = cshcat_make(map_fn, nbar, sigma_e, fgoodmap_fn)
     cshcat.to_parquet(cat_fn, index=False)
@@ -125,7 +125,7 @@ def lnscat_load(iseed, flaskdir):
     """
     Loads a FLASK lens-catalog to a pandas data-frame
     """
-    lnscat_fn = f"{flaskdir}/4096/seed{iseed+1}/lens-catalog.fits.gz"
+    lnscat_fn = f"{flaskdir}/4096/seed{iseed}/lens-catalog.fits.gz"
     lnscat = ft.read(lnscat_fn, columns=["RA", "DEC", "galtype"])
     # lnscat = lnscat.byteswap().newbyteorder()
     lnscat = pd.DataFrame.from_records(lnscat)
@@ -165,7 +165,7 @@ def process_lenscat(iseed, flaskdir, outdir, nz_lns=5, nck=2):
     lnscat = lnscat_addck(lnscat, flaskdir)
 
     for iz, ick in it.product(range(nz_lns), range(nck)):
-        cat_fn = f"{outdir}/lnscat_z{iz+1}_s{iseed+1}_ck{ick+1}.parquet"
+        cat_fn = f"{outdir}/lnscat_z{iz+1}_s{iseed}_ck{ick+1}.parquet"
         lnscat[(lnscat.zbin == iz + 1) & (lnscat.ck == ick + 1)].drop(
             columns=["zbin", "ck"]
         ).to_parquet(cat_fn, index=False)
@@ -236,8 +236,8 @@ def process_one_pmap(iseed, ick, iz, flaskdir, outdir):
     Processes a single FLASK seed p-map
     """
     fgoodmap_fn = f"{flaskdir}/cookies/ck{ick+1}.fits.gz"
-    map_fn = f"{flaskdir}/4096/seed{iseed+1}/p-s{iseed+1}-f1z{iz+1}.fits"
-    cat_fn = f"{outdir}/lnscat_z{iz+1}_s{iseed+1}_ck{ick+1}.parquet"
+    map_fn = f"{flaskdir}/4096/seed{iseed}/p-s{iseed}-f1z{iz+1}.fits"
+    cat_fn = f"{outdir}/lnscat_z{iz+1}_s{iseed}_ck{ick+1}.parquet"
 
     lnscat = lnscat_make_frompmap(map_fn, fgoodmap_fn)
     lnscat.to_parquet(cat_fn, index=False)
@@ -303,7 +303,7 @@ if __name__ == "__main__":
     # lnscat generation depends on if Y1 or Y3 release.
     # Also the prefix names of FLASK products depend on that.
     if o.des_release == "y1":
-        kggpref = f"kgg-s{o.iseed+1}-f2"
+        kggpref = f"kgg-s{o.iseed}-f2"
 
         args = [
             (o.iseed, ick, iz, conf["flaskdir"], outdir)
