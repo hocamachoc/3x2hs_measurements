@@ -23,9 +23,8 @@ if conf["nonoise"]:
 print(conf, odir)
 
 if conf["type"] == "flask":
-    real_id = int(sys.argv[2])  # Realization ID. Starts at 0
-    iseed, ick = real_id // conf["nck"] + 1, real_id % conf["nck"] + 1
-    print(iseed, ick)
+    iseed, ick = int(sys.argv[2]), int(sys.argv[3])
+    print("CSH", iseed, ick)
     cshcat = [
         f"{conf['flaskdir']}/maskedcats"
         + f"/srccat_z{iz+1}_s{iseed}_ck{ick}.parquet"
@@ -86,7 +85,7 @@ for i in range(conf["nz_src"]):
             cls[f"pnl_{i}"] = nls_coup
             cls[f"nl_{i}"] = w.decouple_cell(nls_coup)
         # Saving the MCM
-        if real_id == 0:
+        if iseed == 0 and ick == 1:
             w.write_to(
                 ofn.replace("cls_", "mcmwsp_").replace(".npz", f"_{i}{j}.fits")
             )

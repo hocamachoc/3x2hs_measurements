@@ -27,9 +27,8 @@ if not os.path.exists(odir):
     os.makedirs(odir)
 
 if conf["type"] == "flask":
-    real_id = int(sys.argv[2])  # Realization ID. Starts at 0
-    iseed, ick = real_id // conf["nck"] + 1, real_id % conf["nck"] + 1
-    print(iseed, ick)
+    iseed, ick = int(sys.argv[2]), int(sys.argv[3])
+    print("GGL", iseed, ick)
 
     # Prepare cosmic-shear stuff
     cshcat = [
@@ -107,7 +106,7 @@ if conf["nside"] <= 2048:
             cls[f"pcl_{i}{j}"] = cls_coup
             cls[f"cl_{i}{j}"] = w.decouple_cell(cls_coup)
             # Saving the MCM
-            if real_id == 0:
+            if iseed == 0 and ick == 1:
                 w.write_to(
                     ofn.replace("cls_", "mcmwsp_").replace(
                         ".npz", f"_{i}{j}.fits"
@@ -134,7 +133,7 @@ else:
             cls[f"pcl_{i}{j}"] = cls_coup
             cls[f"cl_{i}{j}"] = w.decouple_cell(cls_coup)
             # Saving the MCM
-            if real_id == 0:
+            if iseed == 0 and ick == 1:
                 w.write_to(
                     ofn.replace("cls_", "mcmwsp_").replace(
                         ".npz", f"_{i}{j}.fits"

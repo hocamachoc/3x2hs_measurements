@@ -27,9 +27,8 @@ if not os.path.exists(odir):
     os.makedirs(odir)
 
 if conf["type"] == "flask":
-    real_id = int(sys.argv[2])  # Realization ID. Starts at 0
-    iseed, ick = real_id // conf["nck"] + 1, real_id % conf["nck"] + 1
-    print(iseed, ick)
+    iseed, ick = int(sys.argv[2]), int(sys.argv[3])
+    print("GCL", iseed, ick)
 
     # Prepare galaxy-clustering stuff
     gclmask = f"{conf['flaskdir']}/cookies/ck{ick}.fits.gz"

@@ -46,7 +46,7 @@ compute_cross: False
 dolens: True
 nonoise: False
 save_maps: False
-pixwin: True" >> ${DIROUT}/flask.yml
+pixwin: True" >> ${TMP}/flask.yml
 
 # 4) Flask + measurements submission file
 echo "#!/bin/bash
@@ -70,10 +70,12 @@ export PMI_NO_PREINITIALIZE=1
 cd ${PWD}
 ${CONDA_PREFIX}/bin/flask ${DIROUT}/run.config
 
-time python3 ../flask.py ${DIROUT}/flask.yml --iseed ${SEED} --des_release y3
-time python3 ../cshtest.py ${DIROUT}/flask.yml ${SEED} 
-time python3 ../ggltest.py ${DIROUT}/flask.yml ${SEED} 
-time python3 ../gcltest.py ${DIROUT}/flask.yml ${SEED}" >> ${DIROUT}/submit_job${SEED}
+time python3 ../flask.py ${TMP}/flask.yml --iseed ${SEED} --des_release y3 --processes 10 	# $(grep -c processor /proc/cpuinfo)
+for CK in 1 2 ; do
+	time python3 ../cshtest.py ${TMP}/flask.yml ${SEED} \${CK}
+	time python3 ../ggltest.py ${TMP}/flask.yml ${SEED} \${CK} 
+	time python3 ../gcltest.py ${TMP}/flask.yml ${SEED} \${CK}
+done" >> ${DIROUT}/submit_job${SEED}
 
 # 4) Run Flask + Measurements
 echo "* Output run dir: ${DIROUT}"
