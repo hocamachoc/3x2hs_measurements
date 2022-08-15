@@ -20,4 +20,14 @@ Relevant files:
 
 AIM: Produce, process, measure and remove Lognormal catalogs 
 
+### How to run
+
+We use [slurm's job array syntax](https://slurm.schedmd.com/job_array.html) to specify a set of seeds to run.
+For example, to run the seeds 1 to 5,
+
+```{sh}
+cd conf
+./run_2p0.sh 1-5
+```
+
 ## 3x2hs_measurements
