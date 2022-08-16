@@ -1,7 +1,8 @@
 #!/bin/bash
 #
 SEEDS=${1}
-TMP=${2:-$(mktemp --tmpdir=${SCRATCH}/tmp -d)}
+QUEUE=${2}
+TMP=${3:-$(mktemp --tmpdir=${SCRATCH}/tmp -d)}
 mkdir -p ${SCRATCH}/tmp
 
 module load python
@@ -41,7 +42,7 @@ pixwin: True" >> ${TMP}/flask.yml
 mkdir -p ${TMP}/4096
 cat <<EOF > ${TMP}/4096/submit_job${SEEDS}
 #!/bin/bash
-#SBATCH -q debug #debug or regular
+#SBATCH -q ${QUEUE}
 #SBATCH --nodes=1
 #SBATCH -t 00:29:50
 #SBATCH -o ${TMP}/4096/outputfile-${SEEDS}_%a

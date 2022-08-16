@@ -22,12 +22,21 @@ AIM: Produce, process, measure and remove Lognormal catalogs
 
 ### How to run
 
+We use the `run_v2p0.sh` script for the E2E pipeline.
+
+The first argument should especify the set of seeds to run.
 We use [slurm's job array syntax](https://slurm.schedmd.com/job_array.html) to specify a set of seeds to run.
-For example, to run the seeds 1 to 5,
+
+The second argument sets the slurm queue for the run.
+
+A third (optional) argument can specify the directory where the outputs will be placed.
+If no third argument is given, the code will set a temporary folder.
+
+For example, to run the seeds 1 to 5 on the `debug` queue,
 
 ```{sh}
 cd conf
-./run_2p0.sh 1-5
+./run_v2p0.sh 1-5 debug
 ```
 
 ## 3x2hs_measurements
