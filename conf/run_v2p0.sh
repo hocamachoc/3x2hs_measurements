@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 SEEDS=${1}
+TMP=${2:-$(mktemp --tmpdir=${SCRATCH}/tmp -d)}
 mkdir -p ${SCRATCH}/tmp
-TMP=$(mktemp --tmpdir=${SCRATCH}/tmp -d)
 
 module load python
 conda activate 3x2pths
@@ -75,9 +75,7 @@ ${CONDA_PREFIX}/bin/flask \${DIROUT}/run.config
 
 time python3 ../flask.py ${TMP}/flask.yml --iseed \${SEED} --des_release y3 --processes 10 	# $(grep -c processor /proc/cpuinfo)
 for CK in 1 2 ; do
-	time python3 ../cshtest.py ${TMP}/flask.yml \${SEED} \${CK}
-	time python3 ../ggltest.py ${TMP}/flask.yml \${SEED} \${CK} 
-	time python3 ../gcltest.py ${TMP}/flask.yml \${SEED} \${CK}
+	time python3 ../3x2test.py ${TMP}/flask.yml \${SEED} \${CK}
 done
 EOF
 
