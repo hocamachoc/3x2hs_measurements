@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 SEEDS=${1}
-QUEUE=${2}
+QUEUE=${2:-debug}
 TMP=${3:-$(mktemp --tmpdir=${SCRATCH}/tmp -d)}
 mkdir -p ${SCRATCH}/tmp
 
