@@ -114,11 +114,14 @@ def execute(block, config):
             np.savetxt('Cl_flaskv2p0_nolimber_emu_Nsource4/' + ofn, tmp, fmt=('%d', '%e'))
             # block[name, a] = np.dot(bpws[name][b1,b2], clout)
 
-        # for b in range(1, 6):
-        #     norm = spline(block['nz_lens', 'z'], block['nz_lens', f'bin_{b}'], ext='zeros').integral(0, 5) 
-        #     print(norm)
-        #     tmp = np.array([block['nz_lens', 'z'], block['nz_lens', f'bin_{b}'] / norm]).T
-        #     np.savetxt(f'nl_3x2v2p0_f{b}.dat', tmp, fmt='%e')
+        # Save lens n(z)'s for FLASK
+        # TODO: HARDCODED normalizations here based on example3x2
+        #       If based on number densities, that should be an input parameter
+        norm = [2.409e-02, 4.235e-02, 6.855e-02, 3.505e-02, 3.469e-02]
+        for b in range(1, 6):
+            norm_tmp = spline(block['nz_lens', 'z'], block['nz_lens', f'bin_{b}'], ext='zeros').integral(0, 5) 
+            tmp = np.array([block['nz_lens', 'z'], block['nz_lens', f'bin_{b}'] * norm[b-1] / norm_tmp]).T
+            np.savetxt(f'nl_3x2v2p0_f{b}.dat', tmp, fmt='%e')
 
         block[name, 'ell'] = ells
         block[name, 'ell_edges'] = ell_edges
