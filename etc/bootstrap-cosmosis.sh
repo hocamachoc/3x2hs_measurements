@@ -5,7 +5,7 @@
 # & SD anaconda3.
 case ${1} in
     grid)
-	module load miniconda/3
+	module load anaconda3
 	NJ=16	# Number of allowed parallel jobs
 	;;
     cori)
