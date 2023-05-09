@@ -19,15 +19,46 @@ odir = (
     f"{conf['odir']}/nside{conf['nside']}"
     f"_{os.path.basename(conf['elledges']).replace('.txt', '')}"
 )
-if conf["nonoise"]:
-    odir += "_nonoise"
-print(conf, odir)
 
 # Create dirs (if needed)
 if not os.path.exists(odir):
     os.makedirs(odir)
 
-if conf["type"] == "flask":
+if conf["type"] == "y3data":
+    # Prepare cosmic-shear stuff
+    cshcat_full = csh.cat_fromy3data(conf["metacal"], conf["nside"])
+    cshcat = [
+        cshcat_full.loc[cshcat_full["bin_number"] == iz]
+        for iz in range(conf["nz_src"])
+    ]
+
+    # Prepare galaxy-clustering stuff
+    gclmask = gcl.mask_make_y3data(conf["redmagic_mask"], conf["nside"])
+    fsky = gclmask.mean()
+    gclfield, nobj = [], []
+    gclcat_full = gcl.cat_fromy3data(conf["redmagic"], conf["nside"])
+    for iz in range(conf["nz_lns"]):
+        gclcat = gclcat_full.loc[gclcat_full["bin_number"] == iz + 1]
+
+        f, n = gcl.field_make(
+            gclcat,
+            gclmask,
+            conf["nside"],
+            save_maps=conf["save_maps"],
+            maps_prefix=f"{odir}/zbin{iz}",
+        )
+        gclfield.append(f)
+        nobj.append(n)
+
+    # Output filename(s)
+    ofn_csh = f"{odir}/cls_csh_y3data.npz"
+    ofn_ggl = f"{odir}/cls_ggl_y3data.npz"
+    ofn_gcl = f"{odir}/cls_gcl_y3data.npz"
+elif conf["type"] == "flask":
+    # We might want to test with true tabels
+    if conf["nonoise"]:
+        odir += "_nonoise"
+
     iseed, ick = int(sys.argv[2]), int(sys.argv[3])
     print("GGL", iseed, ick)
 
@@ -43,7 +74,7 @@ if conf["type"] == "flask":
 
     # Prepare galaxy-clustering stuff
     gclmask = f"{conf['flaskdir']}/cookies/ck{ick}.fits.gz"
-    gclmask = gcl.mask_make(gclmask, ick, conf["nside"], odir)
+    gclmask = gcl.mask_make_flask(gclmask, ick, conf["nside"], odir)
     fsky = gclmask.mean()
     gclfield, nobj = [], []
     for iz in range(conf["nz_lns"]):
@@ -84,7 +115,12 @@ bins = nmt.NmtBin.from_edges(elledges[:-1], elledges[1:])
 # CSH and GGL MCM are computed for each tomo bin pair
 w = nmt.NmtWorkspace()
 # GCL MCM is common to all tomo bin pair
-w_gcl = gcl.mcm_make(gclmask, ick, bins, odir)
+if conf["type"] == "y3data":
+    w_gcl = gcl.mcm_make(conf["redmagic_mask"], gclmask, bins, odir)
+elif conf["type"] == "flask":
+    w_gcl = gcl.mcm_make(
+        f"{conf['flaskdir']}/cookies/ck{ick}.fits.gz", gclmask, bins, odir
+    )
 
 cls_csh = {"ell_eff": bins.get_effective_ells()}
 cls_ggl = {"ell_eff": bins.get_effective_ells()}
@@ -121,10 +157,11 @@ for i, j in it.combinations_with_replacement(range(conf["nz_src"]), 2):
         cls_csh[f"pnl_{i}"] = nls_coup
         cls_csh[f"nl_{i}"] = w.decouple_cell(nls_coup)
     # Saving the MCM
-    if iseed == 0 and ick == 1:
-        w.write_to(
-            ofn_csh.replace("cls_", "mcmwsp_").replace(".npz", f"_{i}{j}.fits")
-        )
+    if conf["type"] == "flask" and iseed != 0 and ick != 1:
+        continue
+    w.write_to(
+        ofn_csh.replace("cls_", "mcmwsp_").replace(".npz", f"_{i}{j}.fits")
+    )
 
 field_i = gclfield
 for i in range(conf["nz_lns"]):
@@ -146,12 +183,11 @@ for i in range(conf["nz_lns"]):
         cls_ggl[f"pcl_{i}{j}"] = cls_coup
         cls_ggl[f"cl_{i}{j}"] = w.decouple_cell(cls_coup)
         # Saving the MCM
-        if iseed == 0 and ick == 1:
-            w.write_to(
-                ofn_ggl.replace("cls_", "mcmwsp_").replace(
-                    ".npz", f"_{i}{j}.fits"
-                )
-            )
+        if conf["type"] == "flask" and iseed != 0 and ick != 1:
+            continue
+        w.write_to(
+            ofn_ggl.replace("cls_", "mcmwsp_").replace(".npz", f"_{i}{j}.fits")
+        )
 
 # GCL cross-correlations
 if conf["compute_cross"]:

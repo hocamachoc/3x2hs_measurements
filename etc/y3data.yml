@@ -1,0 +1,16 @@
+type: 'y3data'
+nz_src: 4
+nside: 1024
+# metacal: "/pscratch/sd/h/hcamacho/Y3DATA/metacal_catalog.parquet"
+metacal: "/global/cscratch1/sd/hcamacho/Y3DATA/metacal_catalog.parquet"
+nz_lns: 6
+# redmagic: "/pscratch/sd/h/hcamacho/Y3DATA/redmagic_catalog.parquet"
+# redmagic_mask: "/pscratch/sd/h/hcamacho/Y3DATA/y3_gold_2.2.1_RING_joint_redmagic_v0.5.1_wide_maglim_v2.2_mask.fits"
+redmagic: "/global/cscratch1/sd/hcamacho/Y3DATA/maglim_catalog.parquet"
+redmagic_mask: "/global/cscratch1/sd/hcamacho/Y3DATA/y3_gold_2.2.1_RING_joint_redmagic_v0.5.1_wide_maglim_v2.2_mask.fits"
+elledges: "etc/binCDFid.txt"
+# odir: "/pscratch/sd/h/hcamacho/Y3DATA"
+odir: "/global/cscratch1/sd/hcamacho/Y3DATA"
+pixwin: True
+save_maps: True
+compute_cross: False
