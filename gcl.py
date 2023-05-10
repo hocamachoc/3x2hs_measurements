@@ -6,7 +6,25 @@ import healpix_util as hu
 import healpy as hp
 import numpy as np
 import pandas as pd
+from astropy.io import fits
 import os
+
+
+def cat_fromy3data(gclcat_fn, nside):
+    print("Reading", gclcat_fn)
+    gclcat = pd.read_parquet(gclcat_fn)
+    gclcat = _add_ipix(gclcat, nside)
+    # weights
+    gclcat.rename({"weight": "w"}, axis=1, inplace=True)
+    return gclcat
+
+
+def mask_make_y3data(mask_fn, nside):
+    nside_in = 4096
+    mask = np.zeros(hp.nside2npix(nside_in))
+    with fits.open(mask_fn) as hdul:
+        mask[hdul[1].data.field("HPIX")] = hdul[1].data.field("FRACGOOD")
+    return hp.ud_grade(mask, nside)
 
 
 def cat_fromflsk(gclcat_fn, nside):
@@ -30,7 +48,7 @@ def _add_ipix(gclcat, nside):
     return gclcat.drop(["ra", "dec"], axis=1)
 
 
-def mask_make(mask_fn, ick, nside, cachedir):
+def mask_make_flask(mask_fn, ick, nside, cachedir):
     """
     Galaxy clustering mask
     """
@@ -56,11 +74,12 @@ def _mask_process(mask_fn, nside):
     return msk
 
 
-def mcm_make(mask, ick, b, cachedir):
+def mcm_make(mask_fn, mask, b, cachedir):
     """
     Returns MCM workspace for position-position (clustering)
     """
-    path = f"{cachedir}/mcmwsp_gcl_ck{ick}.fits"
+    path = mask_fn.replace(".fits", "_wspmcm.fits")
+    path = path.replace(".gz", "")
     w = nmt.NmtWorkspace()
     if os.path.exists(path) and os.path.getsize(path) > 0:
         w.read_from(path)
@@ -76,17 +95,17 @@ def field_make(gclcat, gclmask, nside, save_maps=False, maps_prefix=""):
     Generates NaMASTER galaxy-clustering field
     Also returns the total number of objects
     """
-    ipgood = gclmask > 0
+    ipgood = gclmask > 0.0
     ncmap = np.bincount(
         gclcat[f"ip{nside}"], weights=gclcat["w"], minlength=len(gclmask)
     )
-    dmap = np.full(gclmask.shape[0], 0.0)
+    dmap = np.full(gclmask.shape[0], -1.0)
     dmap[ipgood] = (
         ncmap[ipgood]
         / gclmask[ipgood]
         * gclmask[ipgood].sum()
         / ncmap[ipgood].sum()
-        - 1
+        - 1.0
     )
 
     if save_maps:

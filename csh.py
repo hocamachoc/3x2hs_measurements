@@ -7,6 +7,34 @@ import healpix_util as hu
 import pymaster as nmt
 
 
+def cat_fromy3data(cshcat_fn, nside):
+    print("Reading", cshcat_fn)
+    cshcat = pd.read_parquet(cshcat_fn)
+
+    # Angular positions
+    cshcat[f"ip{nside}"] = hu.HealPix("ring", nside).eq2pix(
+        cshcat["ra"], cshcat["dec"]
+    )
+    cshcat.drop(["ra", "dec"], axis=1, inplace=True)
+
+    # Response and shear
+    cshcat["R"] = 0.5 * (cshcat["R11"] + cshcat["R22"])
+    cshcat.rename({"e_1": "g1", "e_2": "g2"}, axis=1, inplace=True)
+    cshcat.drop(["R11", "R22"], axis=1, inplace=True)
+
+    # Weights
+    cshcat.rename({"weight": "w"}, axis=1, inplace=True)
+
+    # Apply monopole corrections?
+    cshcat["g1"] -= np.average(cshcat["g1"], weights=cshcat["w"])
+    cshcat["g2"] -= np.average(cshcat["g2"], weights=cshcat["w"])
+
+    # Shape noise
+    cshcat["varg"] = 0.5 * (cshcat["g1"] ** 2 + cshcat["g2"] ** 2)
+
+    return cshcat
+
+
 def cat_fromflsk(cshcat_fn, nside, nonoise=False):
     """Load FLASK cosmic shear catalog and adds additional info"""
     print("Reading", cshcat_fn)
