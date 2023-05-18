@@ -4,9 +4,9 @@ channels:
   - defaults
 dependencies:
   # namaster
-  - python=3.8 # 3.9 is giving problems in miniconda/3
-  - namaster=1.2.*
-  - healpy=1.14.*
+  # - python=3.8 # 3.9 is giving problems in miniconda/3
+  - namaster
+  - healpy
   - pandas
   - pyarrow
   - fitsio
