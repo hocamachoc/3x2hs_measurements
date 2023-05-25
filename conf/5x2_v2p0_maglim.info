@@ -1,0 +1,20 @@
+#   1st-Oct-2020 using nz_y3_redmagic_v0.5.1_wide_gold_2.2.1_combined_hd3_hl2_z_samp.fits &
+#                      2pt_shearcat_03_31_20_sompz_v0.40_smooth.fits
+#   Info file lm using y3 mocks using Oliver's code
+#   physical scale = 7.0 Mpc
+#   bias = [1.7, 1.7, 1.7, 2.0, 2.0]
+#   Field number, z bin number, mean, shift, field type, zmin, zmax have
+#   zmin , zmax for type 2 is not important
+#   if you have density, you dont need to pass dndz of type 2 to flask
+#   Types: 1-galaxies 2-shear
+ 1  1 0.0000   1.117385656840    1   0.0100   2.0000
+ 2  2 0.0000   1.142404931600    1   0.0100   2.0000
+ 3  3 0.0000   1.092943583995    1   0.0100   2.0000
+ 4  4 0.0000   1.303020742543    1   0.0100   2.0000
+ 5  5 0.0000   1.238451082003    1   0.0100   2.0000
+ 6  6 0.0000   1.300000000000    1   0.0100   2.0000
+10  1 0.0000   0.004502534157    2   0.2000   0.4300
+10  2 0.0000   0.010240764280    2   0.4300   0.6300
+10  3 0.0000   0.021102564513    2   0.6300   0.9000
+10  4 0.0000   0.030198260684    2   0.9000   1.3000
+# 10  5 0.0000   2.000000000000    2   1087.9900 1087.9920

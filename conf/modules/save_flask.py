@@ -117,7 +117,7 @@ def execute(block, config):
         # Save lens n(z)'s for FLASK
         # TODO: HARDCODED normalizations here based on example3x2
         #       If based on number densities, that should be an input parameter
-        norm = [2.409e-02, 4.235e-02, 6.855e-02, 3.505e-02, 3.469e-02]
+        norm = [2.409e-02, 4.235e-02, 6.855e-02, 3.505e-02, 3.469e-02, 3.4e-2]
         for b in range(1, 6):
             norm_tmp = spline(block['nz_lens', 'z'], block['nz_lens', f'bin_{b}'], ext='zeros').integral(0, 5) 
             tmp = np.array([block['nz_lens', 'z'], block['nz_lens', f'bin_{b}'] * norm[b-1] / norm_tmp]).T
