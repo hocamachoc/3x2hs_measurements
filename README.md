@@ -40,3 +40,33 @@ cd conf
 ```
 
 ## 3x2hs_measurements
+
+## Gaussian covariance
+
+** still under development **
+
+TO DO: apply shot-noise for clustering
+
+In order to calculate clustering and GGL gaussian covariances, there are two scripts that you have to run. 
+The first of them (`save_cov_ws.py`) saves each covariance workspace, which is the most time consuming operation in the computation. The other (`2x2gcovtest.py`) gets the covariance and save all blocks in a numpy npz file. Currently, for both codes you have to specify which sector of the covariance you want: gcl-gcl for clustering, ggl-ggl for galaxy-galaxy lensing and gcl-ggl for their cross covariance. 
+
+To run the `save_cov_ws.py`:
+
+```{sh}
+./save_cov_ws.sh 0-25  'gcl-gcl' regular # for clustering-clustering
+./save_cov_ws.sh 0-100 'gcl-ggl' regular # for clustering-ggl
+./save_cov_ws.sh 0-210 'ggl-ggl' regular # for ggl-ggl
+```
+
+The first argument is the blocks of the covariance to be calculated (each zbin combination is a block), the second argument is sector of the covariance you want and the third is the type of queue you want in slurm (use debug if you are computing up to 5 blocks). 
+
+There are: 
+- 25 unique blocks for gcl-gcl (only "diagonal blocks")
+- 100 unique blocks for gcl-ggl; they are as ggl-gcl because cov matrix is symmetric
+- 210 unique blocks for ggl-ggl; these account for one of the triangles of the cov matrix
+
+To run the `2x2gcovtest.py` symply do:
+
+```{sh}
+sbatch 2x2gcovtest.sh
+```
