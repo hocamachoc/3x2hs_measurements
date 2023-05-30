@@ -62,7 +62,7 @@ The first argument is the blocks of the covariance to be calculated (each zbin c
 
 There are: 
 - 25 unique blocks for gcl-gcl (only "diagonal blocks")
-- 100 unique blocks for gcl-ggl; they are as ggl-gcl because cov matrix is symmetric
+- 100 unique blocks for gcl-ggl; they are the same as ggl-gcl because cov matrix is symmetric
 - 210 unique blocks for ggl-ggl; these account for one of the triangles of the cov matrix
 
 To run the `2x2gcovtest.py` symply do:
