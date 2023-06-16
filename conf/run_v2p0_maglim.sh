@@ -14,7 +14,7 @@ mkdir -p Cl_flaskv2p0_nolimber_emu_Nsource4
 cd ${PWD}
 export SCALE_CUT_DIR=${PWD}
 export SCALE_CUTS="scales_all.ini"
-export DATAFILE="2pt_NG_final_2ptunblind_02_26_21_wnz_maglim_covupdate.fits"
+export DATAFILE="3x2_cls_y3_maglim_metacal_nocov_v0.1.fits"
 cosmosis ${PWD}/params.ini
 
 # 2) Measurements config
