@@ -2,7 +2,7 @@
 #SBATCH -A des
 #SBATCH -N 6
 #SBATCH --tasks-per-node=32
-#SBATCH -C haswell # cpu for perlmutter, haswell for cori 
+#SBATCH -C cpu # cpu for perlmutter, haswell for cori 
 #SBATCH -q debug
 #SBATCH -J 2x2gcovtest
 #SBATCH -o 2x2gcovtest.log
@@ -25,4 +25,4 @@ echo "Number of tasks:" $SLURM_NTASKS
 
 cd /global/homes/l/ljfaga/3x2hs_measurements
 
-python 2x2gcovtest.py etc/y3data-LJF.yml 'ggl-ggl'
+python 2x2gcovtest.py etc/y3flask_gcov.yml 'csh-csh'

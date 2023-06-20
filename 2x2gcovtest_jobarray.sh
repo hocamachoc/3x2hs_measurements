@@ -4,17 +4,17 @@ COMBS=${1}
 BLOCK=${2}
 QUEUE=${3:-debug}
 
-cat <<EOF > ${PSCRATCH}/jobarrays_sh/save_cov_ws_${BLOCK}_${COMBS}
+cat <<EOF > ${CSCRATCH}/jobarrays_sh/2x2gcovtest_${BLOCK}_${COMBS}
 #!/bin/bash
 #SBATCH -A des
 #SBATCH --nodes=1
-#SBATCH -C cpu # cpu for perlmutter, haswell for cori 
+#SBATCH -C haswell # cpu for perlmutter, haswell for cori 
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user lucas.faga@usp.br
 #SBATCH -L SCRATCH
 #SBATCH -t 00:30:00
-#SBATCH -J ${PSCRATCH}/jobarrays_sh/save_cov_ws_${BLOCK}_${COMBS}
-#SBATCH -o ${PSCRATCH}/jobarrays_sh/save_cov_ws_${BLOCK}_${COMBS}.log
+#SBATCH -J ${CSCRATCH}/jobarrays_sh/2x2gcovtest_${BLOCK}_${COMBS}
+#SBATCH -o ${CSCRATCH}/jobarrays_sh/2x2gcovtest_${BLOCK}_${COMBS}.log
 #SBATCH --array=${COMBS}
 #SBATCH -q ${QUEUE}
 
@@ -38,10 +38,9 @@ COMB=\${SLURM_ARRAY_TASK_ID}
 echo ${BLOCK}
 echo \${COMB}
 
-#python 2x2gcovtest.py etc/y3data-LJF.yml ${BLOCK} \${COMB}
-python save_cov_ws.py etc/y3data-LJF.yml ${BLOCK} \${COMB}
+python 2x2gcovtest.py etc/y3data-LJF.yml ${BLOCK} \${COMB}
 EOF
 
-echo ${PSCRATCH}/jobarrays_sh/save_cov_ws_${BLOCK}_${COMBS}
+echo ${CSCRATCH}/jobarrays_sh/2x2gcovtest_${BLOCK}_${COMBS}
 
-sbatch ${PSCRATCH}/jobarrays_sh/save_cov_ws_${BLOCK}_${COMBS}
+sbatch ${CSCRATCH}/jobarrays_sh/2x2gcovtest_${BLOCK}_${COMBS}

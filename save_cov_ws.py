@@ -40,8 +40,11 @@ def save_cov_workspace(fa1, fa2, fb1, fb2, fn):
 #-----------------------------------------------
 # Defining paths
 
-data_path = "/global/cscratch1/sd/ljfaga/DESY3_data/"
-theo_path = "/global/homes/l/ljfaga/3x2hs_measurements/conf/Cl_flaskv2p0_nolimber_emu_Nsource4/"
+data_path = "/global/pscratch1/sd/ljfaga/DESY3_data/"
+theo_path = "/global/homes/l/ljfaga/3x2hs_measurements/conf/Cl_flaskv2p0_nolimber_emu_Nsource4_fid/"
+ws_path = '/pscratch/sd/l/ljfaga/DESY3_data/workspace/'
+cws_path = '/pscratch/sd/l/ljfaga/DESY3_data/cov_workspace/'
+odir = '/pscratch/sd/l/ljfaga/DESY3_data/flask'
 
 print(f'Catalogs path: {data_path}')
 print(f'Theoretical C_ells path: {theo_path}\n')
@@ -54,10 +57,10 @@ conf = sys.argv[1]
 #conf = 'etc/y3data-LJF.yml'
 with open(conf, "rt") as f:
     conf = yaml.safe_load(f)
-odir = (
-    f"{conf['odir']}/nside{conf['nside']}"
-    f"_{os.path.basename(conf['elledges']).replace('.txt', '')}"
-)
+#odir = (
+#    f"{conf['odir']}/nside{conf['nside']}"
+#    f"_{os.path.basename(conf['elledges']).replace('.txt', '')}"
+#)
 
 print(f'Printing configuration file info:\n {conf} \n')
 
@@ -65,10 +68,10 @@ block = sys.argv[2]
 
 print(f'Chosen covariance block: {block}')
 
-if block != 'ggl-ggl' and block != 'gcl-ggl' and block != 'gcl-gcl': 
+if block != 'ggl-ggl' and block != 'gcl-ggl' and block != 'gcl-gcl' and block != 'csh-csh': 
     raise Exception(f"Couldn't understand {block}." + 
-                "The second argument of this script should be one of the following:" +
-                 "'ggl-ggl', 'gcl-ggl', or 'gcl-gcl'")
+                "The second argument of this script should be one of the following: " +
+                 "'csh-csh', 'ggl-ggl', 'gcl-ggl', or 'gcl-gcl'")
 
 comb = int(sys.argv[3])
 
@@ -97,6 +100,18 @@ if conf["type"] == "y3data":
         cshcat_full.loc[cshcat_full["bin_number"] == iz]
         for iz in range(conf["nz_src"])
     ]
+elif conf["type"] == "flask":
+    real_id = 0 # int(sys.argv[2])  # Realization ID. Starts at 0
+    iseed, ick = real_id // conf["nck"], real_id % conf["nck"] + 1
+    print(iseed, ick)
+    cshcat = [
+        f"{conf['flaskdir']}/maskedcats"
+        + f"/srccat_z{iz+1}_s{iseed}_ck{ick}.parquet"
+        for iz in range(conf["nz_src"])
+    ]
+    cshcat = [
+        csh.cat_fromflsk(fn, conf["nside"], conf["nonoise"]) for fn in cshcat
+    ]
 
 cshmask = [
     csh.mask_make(cshcat[i], conf["nside"]) for i in range(conf["nz_src"])
@@ -115,6 +130,28 @@ if conf["type"] == "y3data":
     gclcat_full = gcl.cat_fromy3data(conf["redmagic"], conf["nside"])
     for iz in range(conf["nz_lns"]):
         gclcat = gclcat_full.loc[gclcat_full["bin_number"] == iz + 1]
+
+        f, n = gcl.field_make(
+            gclcat,
+            gclmask,
+            conf["nside"],
+            save_maps=conf["save_maps"],
+            maps_prefix=f"{odir}/zbin{iz}",
+        )
+        gclfield.append(f)
+        nobj.append(n)
+
+elif conf["type"] == "flask":
+    gclmask = f"{conf['flaskdir']}/cookies/ck{ick}.fits.gz"
+    gclmask = gcl.mask_make_flask(gclmask, ick, conf["nside"], odir)
+    fsky = gclmask.mean()
+    gclfield, nobj = [], []
+    for iz in range(conf["nz_lns"]):
+        gclcat = (
+            f"{conf['flaskdir']}/maskedcats"
+            + f"/lnscat_z{iz+1}_s{iseed}_ck{ick}.parquet"
+        )
+        gclcat = gcl.cat_fromflsk(gclcat, conf["nside"])
 
         f, n = gcl.field_make(
             gclcat,
@@ -148,9 +185,38 @@ print(f'Preparing fields took {(time.time() - t0)/60} minutes')
 
 print(f'Saving covariance workspaces for block {block}\n')
 
-cws_path = '/global/cscratch1/sd/ljfaga/DESY3_data/cov_workspace/'
+#cws_path = '/global/cscratch1/sd/ljfaga/DESY3_data/cov_workspace/'
+#ws_path = '/pscratch/sd/l/ljfaga/DESY3_data/workspace'
+#cws_path = '/pscratch/sd/l/ljfaga/DESY3_data/cov_workspace'
 print(f'Saving them at {cws_path} \n')
 
+#---#---#
+
+if block == 'csh-csh':
+
+    print('Shear-shear block')
+
+    covpairs = [(csh_pairs[a], csh_pairs[b])
+             for a in range(len(csh_pairs))
+             for b in range(a, len(csh_pairs))]
+
+    covpairs = covpairs[comb][:]
+
+    a1, a2 = covpairs[0]
+    b1, b2 = covpairs[1]
+
+    fn = f'{cws_path}/csh-csh_cws_{a1}{a2}_{b1}{b2}'
+
+    t0 = time.time()
+
+    save_cov_workspace( cshfield[a1],
+                        cshfield[a2],
+                        cshfield[b1],
+                        cshfield[b2],
+                        fn)
+
+
+    print(f'total time = {(time.time() - t0 )/60} minutes')
 
 #---#---#
 

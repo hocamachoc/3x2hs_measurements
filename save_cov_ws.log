@@ -1,0 +1,37 @@
+/bin/bash
+192
+Number of tasks: 192
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+Catalogs path: /global/cscratch1/sd/ljfaga/DESY3_data/
+Theoretical C_ells path: /global/homes/l/ljfaga/3x2hs_measurements/conf/Cl_flaskv2p0_nolimber_emu_Nsource4/
+
+Reading configuration file 
+
+Printing configuration file info:
+ {'type': 'y3data', 'nz_src': 4, 'nside': 1024, 'metacal': '/global/cfs/cdirs/des/hcamacho/Y3DATA/metacal_catalog.parquet', 'nz_lns': 5, 'redmagic': '/global/cfs/cdirs/des/hcamacho/Y3DATA/redmagic_catalog.parquet', 'maglim': '/global/cfs/cdirs/des/hcamacho/Y3DATA/maglim_catalog.parquet', 'redmagic_mask': '/global/cfs/cdirs/des/hcamacho/Y3DATA/y3_gold_2.2.1_RING_joint_redmagic_v0.5.1_wide_maglim_v2.2_mask.fits', 'elledges': 'etc/binCDFid.txt', 'odir': '/global/cfs/cdirs/des/hcamacho/Y3DATA', 'pixwin': True, 'save_maps': True, 'compute_cross': False} 
+
+Calculating and saving covariance workspaces for block ggl-ggl
+Getting bandpower binning scheme 
+
+Getting galaxy shapes masks and fields
+
+Reading /global/cfs/cdirs/des/hcamacho/Y3DATA/metacal_catalog.parquet
+Getting galaxy position mask and fields
+
+Reading /global/cfs/cdirs/des/hcamacho/Y3DATA/redmagic_catalog.parquet
+Preparing fields took 6.423870507876078 minutes
+Saving covariance workspaces for block ggl-ggl
+
+Saving them at /global/cscratch1/sd/ljfaga/DESY3_data/cov_workspace/ 
+
+GGL-GGL block
+slurmstepd: error: *** JOB 3407710 ON nid01397 CANCELLED AT 2023-05-22T19:15:46 DUE TO TIME LIMIT ***
