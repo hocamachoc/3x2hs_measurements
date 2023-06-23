@@ -317,7 +317,7 @@ if __name__ == "__main__":
     elif o.des_release == "y3":
         kggpref = f"kappa-gamma-f10"
         if conf["dolens"]:
-            process_lenscat(o.iseed, conf["flaskdir"], outdir)
+            process_lenscat(o.iseed, conf["flaskdir"], outdir, nz_lns=conf["nz_lns"])
 
     else:
         raise NotImplementedError(

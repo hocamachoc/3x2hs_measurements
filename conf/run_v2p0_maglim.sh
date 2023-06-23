@@ -14,8 +14,8 @@ mkdir -p Cl_flaskv2p0_nolimber_emu_Nsource4
 cd ${PWD}
 export SCALE_CUT_DIR=${PWD}
 export SCALE_CUTS="scales_all.ini"
-export DATAFILE="3x2_cls_y3_maglim_metacal_nocov_v0.1.fits"
-cosmosis ${PWD}/params.ini
+export DATAFILE="3x2_cls_y3_maglim_metacal_nocov_v0.4.fits"
+cosmosis ${PWD}/params_maglim.ini
 
 # 2) Measurements config
 cp -r cookies ${TMP} 
@@ -48,7 +48,7 @@ cat <<EOF > ${TMP}/4096/submit_job${SEEDS}
 #SBATCH -o ${TMP}/4096/outputfile-${SEEDS}_%a
 #SBATCH -e ${TMP}/4096/errorfile-${SEEDS}_%a
 #SBATCH -L SCRATCH
-#SBATCH --constraint=haswell
+#SBATCH --constraint=cpu
 # #SBATCH --account=des
 #SBATCH -J seed${SEEDS}
 #SBATCH --array=${SEEDS}

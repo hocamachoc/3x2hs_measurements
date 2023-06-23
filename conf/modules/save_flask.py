@@ -59,7 +59,7 @@ def setup(options):
     data_file = fits.open(filename)
     print("data_file opened")
     for name in data_sets:
-        s = two_point_data.get_spectrum(name)        
+        s = two_point_data.get_spectrum(name)       
         bpws[name] = {}
         for b1, b2 in s.bin_pairs:
             bpws[name][b1,b2] = np.array(data_file['{}_{}_{}_{}'.format(bpws_prefix, name,b1,b2).capitalize()].data)[s.angular_bin[s.get_pair_mask(b1,b2)]]
@@ -67,7 +67,7 @@ def setup(options):
             # Add extra bpws for galaxy_cl
             if name == 'galaxy_cl':
                 assert b1 == b2
-                for b in range(b1, 6): # TODO: HARDCODED
+                for b in range(b1, 7): # TODO: HARDCODED; LJF - right now use 6 for redmagic and 7 for maglim
                     bpws[name][b, b1] = bpws[name][b1, b1]
 
     ell_lims_min = hdus['ELL_LIMS'].data['ell_lims_min']
@@ -99,7 +99,6 @@ def execute(block, config):
         # Rename section
         block._copy_section(name, name+'_pre_binned_bpws')
         block[name, 'bin_avg'] = True
-
         for b1,b2 in bpws[name].keys():
             a = 'bin_{}_{}'.format(b1,b2)
             cl_in = block[name+'_pre_binned_bpws', a]
@@ -118,7 +117,7 @@ def execute(block, config):
         # TODO: HARDCODED normalizations here based on example3x2
         #       If based on number densities, that should be an input parameter
         norm = [2.409e-02, 4.235e-02, 6.855e-02, 3.505e-02, 3.469e-02, 3.4e-2]
-        for b in range(1, 6):
+        for b in range(1, 7): # LJF - 6 for redmagic, 7 for maglim
             norm_tmp = spline(block['nz_lens', 'z'], block['nz_lens', f'bin_{b}'], ext='zeros').integral(0, 5) 
             tmp = np.array([block['nz_lens', 'z'], block['nz_lens', f'bin_{b}'] * norm[b-1] / norm_tmp]).T
             np.savetxt(f'nl_3x2v2p0_f{b}.dat', tmp, fmt='%e')
