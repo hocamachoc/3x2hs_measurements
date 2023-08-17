@@ -77,6 +77,12 @@ ${CONDA_PREFIX}/bin/flask \${DIROUT}/run.config
 time python3 ../flask.py ${TMP}/flask.yml --iseed \${SEED} --des_release y3 --processes 10 	# $(grep -c processor /proc/cpuinfo)
 for CK in 1 2 ; do
 	time python3 ../3x2test.py ${TMP}/flask.yml \${SEED} \${CK}
+
+# LJF - copy measurements and remove files
+cp ${TMP}/cls/nside1024_binCDFid/cls_* /pscratch/sd/l/ljfaga/DESY3_data/cls_mag_fid/
+rm ${TMP}/cls/nside1024_binCDFid/mcmwsp*
+rm -r ${TMP}/4096/seed\${SEED}
+# LJF termina
 done
 EOF
 
