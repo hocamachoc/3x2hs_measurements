@@ -5,8 +5,8 @@ QUEUE=${2:-debug}
 TMP=${3:-$(mktemp --tmpdir=${SCRATCH}/tmp -d)}
 mkdir -p ${SCRATCH}/tmp
 
-module load python
-conda activate 3x2pths
+# module load python
+# conda activate 3x2pths
 source ${CONDA_PREFIX}/etc/setup_cosmosis
 
 # 1) Cosmosis -> fiducial Cls
@@ -44,21 +44,25 @@ cat <<EOF > ${TMP}/4096/submit_job${SEEDS}
 #!/bin/bash
 #SBATCH -q ${QUEUE}
 #SBATCH --nodes=1
-#SBATCH -t 00:29:50
+#SBATCH --ntasks 1 
+#SBATCH --cpus-per-task 8
+# #SBATCH -t 00:29:50
 #SBATCH -o ${TMP}/4096/outputfile-${SEEDS}_%a
 #SBATCH -e ${TMP}/4096/errorfile-${SEEDS}_%a
-#SBATCH -L SCRATCH
-#SBATCH --constraint=cpu
+# #SBATCH -L SCRATCH
+# #SBATCH --constraint=cpu
 # #SBATCH --account=des
 #SBATCH -J seed${SEEDS}
 #SBATCH --array=${SEEDS}
 #SBATCH --mail-type=ALL
 
-module load python
+export OMP_NUM_THREADS=\${SLURM_CPUS_PER_TASK}
+
+# module load python
 conda activate 3x2pths
 source ${CONDA_PREFIX}/etc/setup_cosmosis
-export PMI_NO_FORK=1
-export PMI_NO_PREINITIALIZE=1
+# export PMI_NO_FORK=1
+# export PMI_NO_PREINITIALIZE=1
 
 SEED=\${SLURM_ARRAY_TASK_ID}
 DIROUT=${TMP}/4096/seed\${SEED}
@@ -74,7 +78,7 @@ sed -i 's|output|'\$DIROUT'|g' \${DIROUT}/run.config
 cd ${PWD}
 ${CONDA_PREFIX}/bin/flask \${DIROUT}/run.config
 
-time python3 ../flask.py ${TMP}/flask.yml --iseed \${SEED} --des_release y3 --processes 10 	# $(grep -c processor /proc/cpuinfo)
+time python3 ../flask.py ${TMP}/flask.yml --iseed \${SEED} --des_release y3 --processes \${SLURM_CPUS_PER_TASK} # $(grep -c processor /proc/cpuinfo)
 for CK in 1 2 ; do
 	time python3 ../3x2test.py ${TMP}/flask.yml \${SEED} \${CK}
 

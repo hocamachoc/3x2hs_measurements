@@ -1,0 +1,94 @@
+/bin/bash
+192
+Number of tasks: 192
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+setting the output map dtype to [dtype('float64')]
+Catalogs path: /pscratch/sd/l/ljfaga/DESY3_data/
+Theoretical C_ells path: /global/homes/l/ljfaga/3x2hs_measurements/conf/Cl_flaskv2p0_nolimber_emu_Nsource4/
+
+Reading configuration file 
+
+Printing configuration file info:
+ {'type': 'y3data', 'nz_src': 4, 'nside': 1024, 'metacal': '/global/cfs/cdirs/des/hcamacho/Y3DATA/metacal_catalog.parquet', 'nz_lns': 5, 'redmagic': '/global/cfs/cdirs/des/hcamacho/Y3DATA/redmagic_catalog.parquet', 'maglim': '/global/cfs/cdirs/des/hcamacho/Y3DATA/maglim_catalog.parquet', 'redmagic_mask': '/global/cfs/cdirs/des/hcamacho/Y3DATA/y3_gold_2.2.1_RING_joint_redmagic_v0.5.1_wide_maglim_v2.2_mask.fits', 'elledges': 'etc/binCDFid.txt', 'odir': '/global/cfs/cdirs/des/hcamacho/Y3DATA', 'pixwin': False, 'save_maps': True, 'compute_cross': False} 
+
+Chosen covariance block: gcl-ggl
+Calculating and saving covariance workspaces for block gcl-ggl
+
+Getting bandpower binning scheme 
+
+Getting galaxy shapes masks and fields
+
+Reading /global/cfs/cdirs/des/hcamacho/Y3DATA/metacal_catalog.parquet
+Getting galaxy position mask and fields
+
+Reading /global/cfs/cdirs/des/hcamacho/Y3DATA/redmagic_catalog.parquet
+Creating and calculating (or loading) workspaces
+
+Shear
+
+csh workspace already exists
+Clustering
+
+Galaxy-galaxy lensing
+
+já tem ggl workspace
+Loading theoretical C_ells
+
+Shear C_ells
+
+0
+(4, 3072) 3072 <class 'int'> 0 <class 'int'>
+1
+(4, 3072) 3072 <class 'int'> 1 <class 'int'>
+2
+(4, 3072) 3072 <class 'int'> 2 <class 'int'>
+3
+(4, 3072) 3072 <class 'int'> 3 <class 'int'>
+4
+(4, 3072) 3072 <class 'int'> 4 <class 'int'>
+5
+(4, 3072) 3072 <class 'int'> 5 <class 'int'>
+6
+(4, 3072) 3072 <class 'int'> 6 <class 'int'>
+7
+(4, 3072) 3072 <class 'int'> 7 <class 'int'>
+8
+(4, 3072) 3072 <class 'int'> 8 <class 'int'>
+9
+(4, 3072) 3072 <class 'int'> 9 <class 'int'>
+4 4 4 (3072,)
+Clustering C_ells
+
+0
+(1, 3072) 3072 <class 'int'> 0 <class 'int'>
+1
+(1, 3072) 3072 <class 'int'> 1 <class 'int'>
+2
+(1, 3072) 3072 <class 'int'> 2 <class 'int'>
+3
+(1, 3072) 3072 <class 'int'> 3 <class 'int'>
+4
+(1, 3072) 3072 <class 'int'> 4 <class 'int'>
+5
+Traceback (most recent call last):
+  File "2x2gcovtest.py", line 388, in <module>
+    cl = load_inputcl(i+1, j+1, lmax, idir=theo_path, cl_type='gcl')
+  File "2x2gcovtest.py", line 68, in load_inputcl
+    cl = np.loadtxt(fn, usecols=1)
+  File "/global/homes/l/ljfaga/.conda/envs/3x2pths_gcov/lib/python3.8/site-packages/numpy/lib/npyio.py", line 1356, in loadtxt
+    arr = _read(fname, dtype=dtype, comment=comment, delimiter=delimiter,
+  File "/global/homes/l/ljfaga/.conda/envs/3x2pths_gcov/lib/python3.8/site-packages/numpy/lib/npyio.py", line 975, in _read
+    fh = np.lib._datasource.open(fname, 'rt', encoding=encoding)
+  File "/global/homes/l/ljfaga/.conda/envs/3x2pths_gcov/lib/python3.8/site-packages/numpy/lib/_datasource.py", line 193, in open
+    return ds.open(path, mode, encoding=encoding, newline=newline)
+  File "/global/homes/l/ljfaga/.conda/envs/3x2pths_gcov/lib/python3.8/site-packages/numpy/lib/_datasource.py", line 533, in open
+    raise FileNotFoundError(f"{path} not found.")
+FileNotFoundError: /global/homes/l/ljfaga/3x2hs_measurements/conf/Cl_flaskv2p0_nolimber_emu_Nsource4//Y3_5x2pt_Nsource4-Cl_f2z2f1z1.dat not found.

@@ -5,6 +5,11 @@ channels:
 dependencies:
   # namaster
   # - python=3.8 # 3.9 is giving problems in miniconda/3
+  - numpy<1.20
+  - gcc_linux-64
+  - gxx_linux-64
+  - gfortran_linux-64
+  - git
   - namaster
   - healpy
   - pandas
@@ -17,9 +22,6 @@ dependencies:
   - openmp
   - libgomp
   - mpi4py
-  - gcc_linux-64
-  - gxx_linux-64
-  - gfortran_linux-64
   - fftw
   - cfitsio
   - gsl

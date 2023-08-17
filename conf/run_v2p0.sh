@@ -48,7 +48,7 @@ cat <<EOF > ${TMP}/4096/submit_job${SEEDS}
 #SBATCH -o ${TMP}/4096/outputfile-${SEEDS}_%a
 #SBATCH -e ${TMP}/4096/errorfile-${SEEDS}_%a
 #SBATCH -L SCRATCH
-#SBATCH --constraint=haswell
+#SBATCH --constraint=cpu
 # #SBATCH --account=des
 #SBATCH -J seed${SEEDS}
 #SBATCH --array=${SEEDS}

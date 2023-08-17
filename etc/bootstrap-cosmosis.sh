@@ -1,38 +1,28 @@
 #!/bin/bash
-
-# 0) Load the conda module
-# Currently supporting: GRID/UNESP: miniconda/3, CORI/NERSC: python (anaconda3) 
-# & SD anaconda3.
-case ${1} in
-    grid)
-	module load anaconda3
-	NJ=16	# Number of allowed parallel jobs
-	;;
-    cori)
-	module load python
-	NJ=16	# Number of allowed parallel jobs
-	;;
-    sd)
-	module load anaconda3
-	NJ=16	# Number of allowed parallel jobs
-	;;
-    *)
-	echo "Usage: ${0} <grid|cori|sd>"
-	exit 1
-	;;
-esac
+# This script installs cosmosis and flask inside the 3x2pths conda environment
+# Note the script do not handle the creation of the environment, you will need 
+# to do create it yourself.
+#
+# Usage:
+# bash etc/bootstrap-cosmosis.sh
 
 BASE=${PWD}
 TMP=$(mktemp -d)
+NJ=$(echo $(lscpu | grep ^CPU\(s\) | awk '{print $2}') - 1 | bc -l)
+echo "Running with $NJ parallel jobs"
 
-# 1) Setup the conda env
-# Strategy here: if there's a `3x2pths` module, start fresh, remove it and
-# create a new one - TODO: There should be a better way...
-conda remove --name 3x2pths --all -y
-conda env create --name 3x2pths --file environment.yml
-source activate 3x2pths
+# 0) Check if we are in a conda env
+if [ -z "$CONDA_PREFIX" ]; then
+  echo "Oops, you are not inside a conda environment."
+  echo "You may need to run first `conda create -y --file environment.yml`"
+  echo "to create it, then run `conda activate 3x2pths` before trying to run"
+  echo "this script again."
+  exit 1
+else
+  echo "Running inside conda env: ${CONDA_PREFIX}"
+fi
 
-# 2) Clone the CosmoSIS repos
+# 1) Clone the CosmoSIS repos
 rm -rf ${CONDA_PREFIX}/cosmosis
 # You will need to pass the DES password for the cosmosis-des-library
 cd ${CONDA_PREFIX}
@@ -40,7 +30,7 @@ cd ${CONDA_PREFIX}
 URL=https://bitbucket.org/joezuntz/cosmosis
 git clone ${URL}
 cd cosmosis
-git checkout develop
+git checkout tags/des-y3 -b develop
 # 1.2) cosmosis-standard-library (des-y3)
 URL=https://bitbucket.org/joezuntz/cosmosis-standard-library
 git clone ${URL}
@@ -54,7 +44,7 @@ cd cosmosis-des-library
 git checkout master
 cd ..
 
-# 3) Install cosmosis
+# 2) Install cosmosis
 SETUPCOSMOSIS=${CONDA_PREFIX}/etc/setup_cosmosis
 cp -v ${BASE}/etc/setup_cosmosis.template ${SETUPCOSMOSIS}
 sed -i -e "/export COSMOSIS_SRC_DIR=/cexport COSMOSIS_SRC_DIR=\\${CONDA_PREFIX}/cosmosis" ${SETUPCOSMOSIS}
@@ -63,19 +53,22 @@ cd ${CONDA_PREFIX}/cosmosis
 pip install -r ${CONDA_PREFIX}/cosmosis/config/nersc-pip-req.txt
 make -j${NJ}
 
-# 4) Install FLASK
+# 3) Install FLASK
 cd ${TMP}
-# 4.1) Healpix CXX
+# 3.1) Healpix CXX
 VER=3.82
-URL=https://downloads.sourceforge.net/project/healpix/Healpix_3.82/Healpix_${VER}_2022Jul28.tar.gz
-wget -c --no-check-certificate $URL
-tar -xzf *.tar.gz
+URL=https://downloads.sourceforge.net/project/healpix/Healpix_${VER}/Healpix_${VER}_2022Jul28.tar.gz
+curl -LO $URL
+tar -xzf Healpix_${VER}_2022Jul28.tar.gz
 cd Healpix*/
-FITSDIR=${CONDA_PREFIX}/lib FITSINC=${CONDA_PREFIX}/include ./configure -L --auto=cxx
-make -j${NJ}
+FITSDIR=${CONDA_PREFIX}/lib FITSINC=${CONDA_PREFIX}/include ./configure -L --auto=sharp
+cd src/cxx
+CFITSIO_CFLAGS=-I$CONDA_PREFIX/include CFITSIO_LIBS=-L$CONDA_PREFIX/lib SHARP_CFLAGS=-I$PWD/../../include SHARP_LIBS=-L$PWD/../../ ./configure --prefix=$PWD/../../
+make -j${NJ} install
+cd ../../
 cp -ur include lib bin data Version ${CONDA_PREFIX}/
 rm /tmp/Healpix_autolist.txt
-# 4.2) flask
+# 3.2) flask
 cd ${TMP}
 # URLREPO=https://github.com/ucl-cosmoparticles/flask.git # Does not read CATALOG_COLS(?)
 URLREPO=https://github.com/hsxavier/flask.git
@@ -94,4 +87,3 @@ cp -ru bin ${CONDA_PREFIX}/
 
 # 4) Clean up
 rm -rf ${TMP}
-conda deactivate
