@@ -67,7 +67,7 @@ def setup(options):
             # Add extra bpws for galaxy_cl
             if name == 'galaxy_cl':
                 assert b1 == b2
-                for b in range(b1, 7): # TODO: HARDCODED; LJF - right now use 6 for redmagic and 7 for maglim
+                for b in range(b1, 6): # TODO: HARDCODED; LJF - right now use 6 for redmagic and 7 for maglim
                     bpws[name][b, b1] = bpws[name][b1, b1]
 
     ell_lims_min = hdus['ELL_LIMS'].data['ell_lims_min']
@@ -118,11 +118,13 @@ def execute(block, config):
         #       If based on number densities, that should be an input parameter
         # norm = [2.409e-02, 4.235e-02, 6.855e-02, 3.505e-02, 3.469e-02, 3.4e-2]
         # Those normalizations below are based on 2x2 config space papers (https://arxiv.org/pdf/2105.13546.pdf)
-        # REDMAGIC:
-        # norm = [0.022, 0.038, 0.058, 0.029, 0.025]
+        # REDMAGIC fiducial:
+        #norm = [0.022, 0.038, 0.058, 0.029, 0.025]
+        # REDMAGIC correcting to make densities of output maps match
+        norm = [0.022*1.0809, 0.038*1.1166, 0.058*1.1631, 0.029*1.1960, 0.025*1.3771]
         # MAGLIM:
-        norm = [0.150, 0.107, 0.109, 0.146, 0.106, 0.100]
-        for b in range(1, 7): # LJF - 6 for redmagic, 7 for maglim
+        #norm = [0.150, 0.107, 0.109, 0.146, 0.106, 0.100]
+        for b in range(1, 6): # LJF - 6 for redmagic, 7 for maglim
             norm_tmp = spline(block['nz_lens', 'z'], block['nz_lens', f'bin_{b}'], ext='zeros').integral(0, 5) 
             tmp = np.array([block['nz_lens', 'z'], block['nz_lens', f'bin_{b}'] * norm[b-1] / norm_tmp]).T
             np.savetxt(f'nl_3x2v2p0_f{b}.dat', tmp, fmt='%e')
