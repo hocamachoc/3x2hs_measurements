@@ -10,12 +10,14 @@ from astropy.io import fits
 import os
 
 
-def cat_fromy3data(gclcat_fn, nside):
+def cat_fromy3data(gclcat_fn, nside, weights):
     print("Reading", gclcat_fn)
     gclcat = pd.read_parquet(gclcat_fn)
     gclcat = _add_ipix(gclcat, nside)
     # weights
     gclcat.rename({"weight": "w"}, axis=1, inplace=True)
+    if not weights:
+        gclcat["w"] = 1.0
     return gclcat
 
 
