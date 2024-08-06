@@ -36,7 +36,7 @@ if conf["type"] == "y3data":
     gclmask = gcl.mask_make_y3data(conf["redmagic_mask"], conf["nside"])
     fsky = gclmask.mean()
     gclfield, nobj = [], []
-    gclcat_full = gcl.cat_fromy3data(conf["redmagic"], conf["nside"])
+    gclcat_full = gcl.cat_fromy3data(conf["redmagic"], conf["nside"], conf["lens_weights"])
     for iz in range(conf["nz_lns"]):
         gclcat = gclcat_full.loc[gclcat_full["bin_number"] == iz + 1]
 
@@ -54,6 +54,10 @@ if conf["type"] == "y3data":
     ofn_csh = f"{odir}/cls_csh_y3data.npz"
     ofn_ggl = f"{odir}/cls_ggl_y3data.npz"
     ofn_gcl = f"{odir}/cls_gcl_y3data.npz"
+    if not conf["lens_weights"]:
+        ofn_csh = f"{odir}/cls_csh_y3data_nolensweights.npz"
+        ofn_ggl = f"{odir}/cls_ggl_y3data_nolensweights.npz"
+        ofn_gcl = f"{odir}/cls_gcl_y3data_nolensweights.npz"
 elif conf["type"] == "flask":
     # We might want to test with true tabels
     if conf["nonoise"]:
