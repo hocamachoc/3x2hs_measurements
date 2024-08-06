@@ -1,0 +1,19 @@
+#   Info file lm using y3 mocks using Oliver's code
+#   physical scale = to be updated
+#   bias = to be updated
+#   Field number, z bin number, mean, shift, field type, zmin, zmax have
+#   zmin , zmax for type 2 is not important
+#   if you have density, you dont need to pass dndz of type 2 to flask
+#   Types: 1-galaxies 2-shear
+#   (LJF aug 01 2024): shifts multiplied by linear bias and zmin zmax for sources not updated 
+#   (shouldn't be important as mentioned above) 
+ 1  1 0.0000   0.6252844592812525    1   0.2000   0.4000
+ 2  2 0.0000   0.6289660395669965    1   0.4000   0.5500
+ 3  3 0.0000   0.596860926532684     1   0.5500   0.7000
+ 4  4 0.0000   0.6209043284077096    1   0.7000   0.8500
+ 5  5 0.0000   0.6033613015317846    1   0.8500   0.9500
+ 6  6 0.0000   0.5628761039725894    1   0.9500   1.0500
+10  1 0.0000   0.008944954439676602    2   0.2000   0.4300
+10  2 0.0000   0.012992640656065126    2   0.4300   0.6300
+10  3 0.0000   0.027439410991155135    2   0.6300   0.9000
+10  4 0.0000   0.047388679732602024    2   0.9000   1.3000
