@@ -1,13 +1,13 @@
 #!/bin/bash
 #
 SEEDS=${1}
-QUEUE=${2:-debug}
+#QUEUE=${2:-debug}
 TMP=${3:-$(mktemp --tmpdir=${SCRATCH}/tmp -d)}
 mkdir -p ${SCRATCH}/tmp
 
-module load python
-conda activate 3x2pths
-source ${CONDA_PREFIX}/etc/setup_cosmosis
+#module load python
+#conda activate 3x2pths
+#source ${CONDA_PREFIX}/etc/setup_cosmosis
 
 ## 1) Cosmosis -> fiducial Cls
 #mkdir -p Cl_flaskv2p0_nolimber_emu_Nsource4
@@ -18,8 +18,8 @@ source ${CONDA_PREFIX}/etc/setup_cosmosis
 #cosmosis ${PWD}/params.ini
 
 # 2) Measurements config
-#cp -r cookies ${TMP} 
-#cp ../etc/binCDFid.txt ${TMP}
+cp -r cookies ${TMP} 
+cp ../etc/binCDFid.txt ${TMP}
 
 echo "type: 'flask'
 nz_src: 4
@@ -42,23 +42,25 @@ pixwin: True" >> ${TMP}/flask.yml
 mkdir -p ${TMP}/4096
 cat <<EOF > ${TMP}/4096/submit_job${SEEDS}
 #!/bin/bash
-#SBATCH -q ${QUEUE}
-#SBATCH --nodes=1
-#SBATCH -t 00:29:50
+#SBATCH -N 1
+#SBATCH --tasks-per-node=24
+#SBATCH -p cpu
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user lucas.faga@usp.br
+#SBATCH -t 01:00:00
 #SBATCH -o ${TMP}/4096/outputfile-${SEEDS}_%a
 #SBATCH -e ${TMP}/4096/errorfile-${SEEDS}_%a
-#SBATCH -L SCRATCH
-#SBATCH --constraint=cpu
-# #SBATCH --account=des
 #SBATCH -J seed${SEEDS}
 #SBATCH --array=${SEEDS}
-#SBATCH --mail-type=ALL
 
-module load python
-conda activate 3x2pths
+echo $SHELL
+echo ${SLURM_NTASKS}
+# module load python
+source ${HOME}/.bashrc
+conda activate /prj/eubd/hugo.chavez2/micromamba/envs/3x2pths
 source ${CONDA_PREFIX}/etc/setup_cosmosis
-export PMI_NO_FORK=1
-export PMI_NO_PREINITIALIZE=1
+export OMP_NUM_THREADS=2
+echo "Number of tasks:" $SLURM_NTASKS
 
 SEED=\${SLURM_ARRAY_TASK_ID}
 DIROUT=${TMP}/4096/seed\${SEED}
@@ -78,10 +80,11 @@ ${CONDA_PREFIX}/bin/flask \${DIROUT}/run.config
 #time python3 ../flask.py ${TMP}/flask.yml --iseed \${SEED} --des_release y3 --processes 10 	# $(grep -c processor /proc/cpuinfo)
 #for CK in 1 2 ; do
 #	time python3 ../3x2test.py ${TMP}/flask.yml \${SEED} \${CK}
-done
+#done
 EOF
 
 # 4) Run Flask + Measurements
+cd /scratch/eubd/lucas.faga/y3-3x2pt_harmonic/cosmosis/
 echo "* Output run dir: ${TMP}"
 sbatch ${TMP}/4096/submit_job${SEEDS}
 
